@@ -89,10 +89,23 @@ class PresensiController extends Controller
         // logika sesuai kebutuhan kamu
     }
 
-    public function createKeluar()
-    {
-        return view('presensi.create-face'); // bisa sama dengan presensi masuk
-    }
+ public function createKeluar()
+{
+    $karyawan = Karyawan::with('jabatan')->get();
+    $shifts = ShiftKerja::all();
+    $lokasi = LokasiPresensi::aktif()->get();
+
+    return view('presensi.create-face', compact('karyawan', 'shifts', 'lokasi'));
+}
+
+private function savePresensiImage($request, $folder)
+{
+    $fotoPath = $request->file('foto')->store($folder, 'public');
+    $thumbnailPath = $request->file('foto')->store($folder . '/thumbnails', 'public');
+
+    return [$fotoPath, $thumbnailPath];
+}
+
 
     public function storeKeluar(Request $request)
     {

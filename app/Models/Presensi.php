@@ -65,6 +65,8 @@ class Presensi extends Model
         return $this->belongsTo(Karyawan::class, 'id_karyawan');
     }
 
+    
+
     // Relasi ke Shift Kerja
     public function shift()
     {

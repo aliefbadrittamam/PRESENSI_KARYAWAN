@@ -48,4 +48,9 @@ class Karyawan extends Authenticatable
     {
         return $this->belongsTo(Fakultas::class, 'id_fakultas');
     }
+
+    public function presensi()
+{
+    return $this->hasMany(Presensi::class, 'id_karyawan', 'id_karyawan');
+}
 }
