@@ -50,10 +50,11 @@ class FakultasController extends Controller
         return view('fakultas.show', compact('fakultas'));
     }
 
-    public function edit(Fakultas $fakultas)
-    {
-        return view('fakultas.edit', compact('fakultas'));
-    }
+public function edit(Fakultas $fakultas)
+{
+    return view('fakultas.edit', compact('fakultas'));
+}
+
 
     public function update(Request $request, Fakultas $fakultas): RedirectResponse
     {

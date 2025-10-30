@@ -96,7 +96,11 @@
                         <button type="submit" class="btn btn-primary btn-lg fw-medium py-3">Masuk</button>
                     </div>
                 </form>
-
+                <div class="text-center mt-3">
+                    <a href="{{ route('barcode.scanner') }}" class="btn btn-outline-primary">
+                        <i class="fa fa-barcode"></i> Login via Barcode
+                    </a>
+                </div>
                 <p class="alternative-link text-center mt-4">
                     <a href="{{ route('login.admin') }}" class="text-decoration-none text-secondary fw-medium">Masuk
                         sebagai Admin</a>

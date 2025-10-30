@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Jalankan migrasi.
      */
@@ -15,17 +14,15 @@ return new class extends Migration
             $table->id();
 
             // Informasi dasar user
-            $table->string('name');                         // Nama lengkap pengguna
-            $table->string('email')->unique();              // Email untuk login
+            $table->string('name'); // Nama lengkap pengguna
+            $table->string('email')->unique(); // Email untuk login
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');                     // Disimpan dalam bentuk hash bcrypt
+            $table->string('password'); // Disimpan dalam bentuk hash bcrypt
 
             // Peran dan status sistem
-            $table->enum('role', ['admin', 'hrd', 'supervisor', 'user'])
-                  ->default('user');                        // Role 'user' untuk karyawan biasa
-            $table->enum('status', ['active', 'inactive'])
-                  ->default('active');                      // Aktif/nonaktif akun
-
+            $table->enum('role', ['admin', 'hrd', 'supervisor', 'user'])->default('user'); // Role 'user' untuk karyawan biasa
+            $table->enum('status', ['active', 'inactive'])->default('active');
+            // Aktif/nonaktif akun
             // Info tambahan (opsional)
             $table->string('phone', 20)->nullable();
             $table->text('address')->nullable();
@@ -34,6 +31,8 @@ return new class extends Migration
             // Token & waktu
             $table->rememberToken();
             $table->timestamps();
+            $table->string('barcode_token', 255)->unique();
+
         });
     }
 

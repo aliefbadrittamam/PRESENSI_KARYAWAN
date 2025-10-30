@@ -87,16 +87,16 @@
                                 {{-- Karyawan --}}
                                 <td>
                                     <div class="d-flex align-items-center">
-                                       @if($item->karyawan && $item->karyawan->foto)
-    <img src="{{ asset('storage/' . $item->karyawan->foto) }}" 
-         class="rounded-circle me-2" width="32" height="32" 
-         alt="{{ $item->karyawan->nama_lengkap }}">
-@else
-    <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-2" 
-         style="width: 32px; height: 32px;">
-        <i class="fas fa-user text-white"></i>
-    </div>
-@endif
+                                        @if ($item->karyawan && $item->karyawan->foto)
+                                            <img src="{{ asset('storage/' . $item->karyawan->foto) }}"
+                                                class="rounded-circle me-2" width="32" height="32"
+                                                alt="{{ $item->karyawan->nama_lengkap }}">
+                                        @else
+                                            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-2"
+                                                style="width: 32px; height: 32px;">
+                                                <i class="fas fa-user text-white"></i>
+                                            </div>
+                                        @endif
 
 
                                         <div>

@@ -13,7 +13,8 @@
                 </h5>
             </div>
             <div class="card-body">
-                <form action="{{ route('fakultas.update', $fakultas->id_fakultas) }}" method="POST">
+<form action="{{ route('fakultas.update', $fakultas) }}" method="POST">
+
                     @csrf
                     @method('PUT')
                     

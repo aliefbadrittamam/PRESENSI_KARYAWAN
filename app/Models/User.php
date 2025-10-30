@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Str;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
@@ -89,4 +90,15 @@ class User extends Authenticatable
         
         return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
     }
+
+   
+   // generate barcode_token after creating user 
+    protected static function booted()
+{
+    static::creating(function ($user) {
+        $user->barcode_token = Str::uuid(); 
+    });
+}
+
+    
 }
