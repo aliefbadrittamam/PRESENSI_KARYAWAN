@@ -4,34 +4,59 @@
 @section('icon', 'fa-users')
 
 @push('styles')
-<style>
-    /* Pastikan modal selalu di depan */
-    .modal-backdrop {
-        z-index: 1040 !important;
-    }
-    
-    .modal {
-        z-index: 1050 !important;
-    }
-    
-    .modal-dialog {
-        z-index: 1060 !important;
-    }
+    <style>
+        /* Pastikan modal selalu di depan */
+        .modal-backdrop {
+            z-index: 1040 !important;
+        }
 
-    /* Container QR Code agar tidak terpotong */
-    #qrcodeContainer {
-        min-height: 280px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
+        .modal {
+            z-index: 1050 !important;
+        }
 
-    #qrcodeContainer canvas,
-    #qrcodeContainer img {
-        max-width: 100%;
-        height: auto;
-    }
-</style>
+        .modal-dialog {
+            z-index: 1060 !important;
+        }
+
+        /* Container QR Code agar tidak terpotong */
+        #qrcodeContainer {
+            min-height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #qrcodeContainer canvas,
+        #qrcodeContainer img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Debug info styling */
+        .debug-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 15px;
+            font-size: 0.85rem;
+            text-align: left;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .debug-info strong {
+            color: #495057;
+        }
+
+        .debug-info code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            word-break: break-all;
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -98,11 +123,9 @@
                                             class="btn btn-warning btn-modern" data-bs-toggle="tooltip" title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <button type="button" 
-                                            class="btn btn-secondary btn-modern" 
+                                        <button type="button" class="btn btn-secondary btn-modern"
                                             onclick="showQRCodeModal('{{ addslashes($item->nama_lengkap) }}', '{{ $item->nip }}', '{{ $item->user->barcode_token ?? '' }}')"
-                                            data-bs-toggle="tooltip" 
-                                            title="Lihat QR Code">
+                                            data-bs-toggle="tooltip" title="Lihat QR Code">
                                             <i class="fas fa-qrcode"></i>
                                         </button>
 
@@ -147,7 +170,7 @@
     </div>
 @endsection
 
-{{-- <!-- Modal QR Code - DIPINDAHKAN KE LUAR @section --> --}}
+{{-- Modal QR Code --}}
 <div class="modal fade" id="qrcodeModal" tabindex="-1" aria-labelledby="qrcodeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -155,13 +178,21 @@
                 <h5 class="modal-title" id="qrcodeModalLabel">
                     <i class="fas fa-qrcode me-2"></i>QR Code Karyawan
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
             </div>
             <div class="modal-body text-center">
                 <h5 id="namaKaryawan" class="mb-1"></h5>
                 <small id="nipKaryawan" class="text-muted d-block mb-3"></small>
 
                 <div id="qrcodeContainer" class="p-3 border rounded bg-light d-inline-block"></div>
+
+                {{-- Debug Info --}}
+                <div id="debugInfo" class="debug-info" style="display: none;">
+                    <strong>Debug Info:</strong><br>
+                    <small>Token: <code id="debugToken"></code></small><br>
+                    <small>URL: <code id="debugUrl"></code></small>
+                </div>
 
                 <div class="mt-4">
                     <button class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">
@@ -180,135 +211,172 @@
 </div>
 
 @push('scripts')
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script>
-    // Inisialisasi tooltip
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        // Inisialisasi tooltip
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
 
-    // Inisialisasi Bootstrap Modal
-    const qrcodeModalEl = document.getElementById('qrcodeModal');
-    let qrcodeModal = null;
+        // Inisialisasi Bootstrap Modal
+        const qrcodeModalEl = document.getElementById('qrcodeModal');
+        let qrcodeModal = null;
+        let currentQRCode = null;
 
-    // State
-    let currentQRCode = null;
+        // Function untuk show modal dengan QR Code
+        function showQRCodeModal(nama, nip, qrcodeToken) {
+            console.log('=================================');
+            console.log('showQRCodeModal called');
+            console.log('Nama:', nama);
+            console.log('NIP:', nip);
+            console.log('Token:', qrcodeToken);
+            console.log('=================================');
 
-    // Function untuk show modal dengan QR Code
-    function showQRCodeModal(nama, nip, qrcodeToken) {
-        // Inisialisasi modal jika belum
-        if (!qrcodeModal) {
-            qrcodeModal = new bootstrap.Modal(qrcodeModalEl, {
-                backdrop: true,
-                keyboard: true,
-                focus: true
-            });
-        }
+            // Inisialisasi modal jika belum
+            if (!qrcodeModal) {
+                qrcodeModal = new bootstrap.Modal(qrcodeModalEl, {
+                    backdrop: true,
+                    keyboard: true,
+                    focus: true
+                });
+            }
 
-        // Set data karyawan
-        document.getElementById('namaKaryawan').textContent = nama || '—';
-        document.getElementById('nipKaryawan').textContent = nip ? ('NIP: ' + nip) : '';
+            // Set data karyawan
+            document.getElementById('namaKaryawan').textContent = nama || '—';
+            document.getElementById('nipKaryawan').textContent = nip ? ('NIP: ' + nip) : '';
 
-        const qrcodeContainer = document.getElementById('qrcodeContainer');
-        qrcodeContainer.innerHTML = '';
-
-        // Validasi token
-        if (!qrcodeToken || qrcodeToken.trim() === '') {
-            qrcodeContainer.innerHTML = '<div class="text-danger p-3">QR Code token tidak tersedia.<br>Silakan generate token terlebih dahulu.</div>';
-            currentQRCode = null;
-            qrcodeModal.show();
-            return;
-        }
-
-        // Generate QR Code
-        try {
-            currentQRCode = new QRCode(qrcodeContainer, {
-                text: qrcodeToken,
-                width: 256,
-                height: 256,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
+            const qrcodeContainer = document.getElementById('qrcodeContainer');
+            const debugInfo = document.getElementById('debugInfo');
+            const debugToken = document.getElementById('debugToken');
+            const debugUrl = document.getElementById('debugUrl');
             
-            // Tunggu sebentar untuk memastikan QR Code sudah di-render
-            setTimeout(function() {
+            qrcodeContainer.innerHTML = '';
+
+            // Validasi token
+            if (!qrcodeToken || qrcodeToken.trim() === '') {
+                qrcodeContainer.innerHTML =
+                    '<div class="text-danger p-3"><i class="fas fa-exclamation-triangle mb-2"></i><br>QR Code token tidak tersedia.<br><small>Silakan generate token terlebih dahulu.</small></div>';
+                currentQRCode = null;
+                debugInfo.style.display = 'none';
                 qrcodeModal.show();
-            }, 100);
-            
-        } catch (err) {
-            console.error('QRCode error:', err);
-            qrcodeContainer.innerHTML = '<div class="text-danger p-3">Gagal generate QR Code.<br>Token tidak valid.</div>';
-            currentQRCode = null;
-            qrcodeModal.show();
-        }
-    }
-
-    // Clean up saat modal ditutup
-    qrcodeModalEl.addEventListener('hidden.bs.modal', function () {
-        const qrcodeContainer = document.getElementById('qrcodeContainer');
-        qrcodeContainer.innerHTML = '';
-        currentQRCode = null;
-    });
-
-    // Download QR Code sebagai PNG
-    document.getElementById('downloadQRCode').addEventListener('click', function () {
-        const qrcodeContainer = document.getElementById('qrcodeContainer');
-        const canvas = qrcodeContainer.querySelector('canvas');
-        
-        if (!canvas) {
-            alert('Tidak ada QR Code untuk diunduh.');
-            return;
-        }
-
-        // Convert canvas to blob
-        canvas.toBlob(function(blob) {
-            if (!blob) {
-                alert('Gagal mengkonversi QR Code.');
                 return;
             }
-            
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            
-            const nipText = document.getElementById('nipKaryawan').textContent.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '') || 'karyawan';
-            a.download = `qrcode_${nipText}.png`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
-        }, 'image/png');
-    });
 
-    // Print QR Code
-    document.getElementById('printQRCode').addEventListener('click', function () {
-        const qrcodeContainer = document.getElementById('qrcodeContainer');
-        const canvas = qrcodeContainer.querySelector('canvas');
-        
-        if (!canvas) {
-            alert('Tidak ada QR Code untuk dicetak.');
-            return;
+            // Generate URL lengkap dengan protocol
+            const baseUrl = window.location.origin; // http://yourdomain.com
+            const loginUrl = baseUrl + '/barcode-login/' + qrcodeToken;
+            
+            console.log('=================================');
+            console.log('QR Code Generation Info:');
+            console.log('Base URL:', baseUrl);
+            console.log('Token:', qrcodeToken);
+            console.log('Full Login URL:', loginUrl);
+            console.log('URL Length:', loginUrl.length);
+            console.log('=================================');
+
+            // Set debug info
+            debugToken.textContent = qrcodeToken;
+            debugUrl.textContent = loginUrl;
+            debugInfo.style.display = 'block';
+
+            // Generate QR Code
+            try {
+                currentQRCode = new QRCode(qrcodeContainer, {
+                    text: loginUrl,
+                    width: 256,
+                    height: 256,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+
+                console.log('✓ QR Code generated successfully!');
+                console.log('Scan this QR to access:', loginUrl);
+
+                // Tunggu sebentar untuk memastikan QR Code sudah di-render
+                setTimeout(function() {
+                    qrcodeModal.show();
+                }, 150);
+
+            } catch (err) {
+                console.error('❌ QRCode generation error:', err);
+                qrcodeContainer.innerHTML =
+                    '<div class="text-danger p-3"><i class="fas fa-times-circle mb-2"></i><br>Gagal generate QR Code.<br><small>Error: ' + err.message + '</small></div>';
+                currentQRCode = null;
+                qrcodeModal.show();
+            }
         }
 
-        const nama = document.getElementById('namaKaryawan').textContent || '';
-        const nip = document.getElementById('nipKaryawan').textContent || '';
+        // Clean up saat modal ditutup
+        qrcodeModalEl.addEventListener('hidden.bs.modal', function() {
+            const qrcodeContainer = document.getElementById('qrcodeContainer');
+            const debugInfo = document.getElementById('debugInfo');
+            qrcodeContainer.innerHTML = '';
+            debugInfo.style.display = 'none';
+            currentQRCode = null;
+            console.log('Modal closed - QR Code cleared');
+        });
 
-        const printWindow = window.open('', '_blank', 'width=800,height=600');
-        if (!printWindow) {
-            alert('Pop-up diblokir. Izinkan pop-up untuk mencetak.');
-            return;
-        }
+        // Download QR Code sebagai PNG
+        document.getElementById('downloadQRCode').addEventListener('click', function() {
+            const qrcodeContainer = document.getElementById('qrcodeContainer');
+            const canvas = qrcodeContainer.querySelector('canvas');
 
-        const qrcodeDataUrl = canvas.toDataURL('image/png');
+            if (!canvas) {
+                alert('Tidak ada QR Code untuk diunduh.');
+                return;
+            }
 
-        printWindow.document.open();
-        printWindow.document.write(`
+            canvas.toBlob(function(blob) {
+                if (!blob) {
+                    alert('Gagal mengkonversi QR Code.');
+                    return;
+                }
+
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+
+                const nipText = document.getElementById('nipKaryawan').textContent.replace(/\s+/g, '_')
+                    .replace(/[^a-zA-Z0-9_-]/g, '') || 'karyawan';
+                a.download = `qrcode_${nipText}.png`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+                
+                console.log('✓ QR Code downloaded');
+            }, 'image/png');
+        });
+
+        // Print QR Code
+        document.getElementById('printQRCode').addEventListener('click', function() {
+            const qrcodeContainer = document.getElementById('qrcodeContainer');
+            const canvas = qrcodeContainer.querySelector('canvas');
+
+            if (!canvas) {
+                alert('Tidak ada QR Code untuk dicetak.');
+                return;
+            }
+
+            const nama = document.getElementById('namaKaryawan').textContent || '';
+            const nip = document.getElementById('nipKaryawan').textContent || '';
+
+            const printWindow = window.open('', '_blank', 'width=800,height=600');
+            if (!printWindow) {
+                alert('Pop-up diblokir. Izinkan pop-up untuk mencetak.');
+                return;
+            }
+
+            const qrcodeDataUrl = canvas.toDataURL('image/png');
+
+            printWindow.document.open();
+            printWindow.document.write(`
             <!DOCTYPE html>
             <html>
                 <head>
-                    <title>Cetak QR Code</title>
+                    <title>Cetak QR Code - ${nama}</title>
                     <style>
                         * {
                             margin: 0;
@@ -368,15 +436,15 @@
                         window.onload = function() {
                             setTimeout(function(){ 
                                 window.print();
-                                // Optional: close window after print
-                                // setTimeout(function(){ window.close(); }, 500);
                             }, 300);
                         }
                     <\/script>
                 </body>
             </html>
-        `);
-        printWindow.document.close();
-    });
-</script>
+            `);
+            printWindow.document.close();
+            
+            console.log('✓ Print dialog opened');
+        });
+    </script>
 @endpush
