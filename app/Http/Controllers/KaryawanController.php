@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Karyawan;
+use App\Models\User;
 use App\Models\Jabatan;
-use App\Models\Departemen;
 use App\Models\Fakultas;
+use App\Models\Karyawan;
+use App\Models\Departemen;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+
 
 class KaryawanController extends Controller
 {
@@ -29,50 +32,65 @@ class KaryawanController extends Controller
         return view('karyawan.create', compact('jabatan', 'departemen', 'fakultas'));
     }
 
-    public function store(Request $request): RedirectResponse
-    {
-        $validator = Validator::make($request->all(), [
-            'nip' => 'required|unique:karyawan,nip|max:20',
-            'nama_lengkap' => 'required|max:100',
-            'jenis_kelamin' => 'required|in:L,P',
-            'tanggal_lahir' => 'required|date',
-            'email' => 'required|email|unique:karyawan,email',
-            'nomor_telepon' => 'required|max:15',
-            'id_jabatan' => 'required|exists:jabatan,id_jabatan',
-            'id_departemen' => 'required|exists:departemen,id_departemen',
-            'id_fakultas' => 'required|exists:fakultas,id_fakultas',
-            'status_aktif' => 'sometimes|boolean',
-            'tanggal_mulai_kerja' => 'required|date',
-            'tanggal_berhenti_kerja' => 'nullable|date|after:tanggal_mulai_kerja',
-            'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
-        ], [
-            'nip.unique' => 'NIP sudah terdaftar',
-            'email.unique' => 'Email sudah terdaftar',
-            'tanggal_berhenti_kerja.after' => 'Tanggal berhenti kerja harus setelah tanggal mulai kerja'
-        ]);
 
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
 
-        $data = $request->all();
+public function store(Request $request): RedirectResponse
+{
+    $validator = Validator::make($request->all(), [
+        'nip' => 'required|unique:karyawan,nip|max:20',
+        'nama_lengkap' => 'required|max:100',
+        'jenis_kelamin' => 'required|in:L,P',
+        'tanggal_lahir' => 'required|date',
+        'email' => 'required|email|unique:karyawan,email|unique:users,email',
+        'nomor_telepon' => 'required|max:15',
+        'id_jabatan' => 'required|exists:jabatan,id_jabatan',
+        'id_departemen' => 'required|exists:departemen,id_departemen',
+        'id_fakultas' => 'required|exists:fakultas,id_fakultas',
+        'status_aktif' => 'sometimes|boolean',
+        'tanggal_mulai_kerja' => 'required|date',
+        'tanggal_berhenti_kerja' => 'nullable|date|after:tanggal_mulai_kerja',
+        'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+    ], [
+        'nip.unique' => 'NIP sudah terdaftar',
+        'email.unique' => 'Email sudah terdaftar',
+        'tanggal_berhenti_kerja.after' => 'Tanggal berhenti kerja harus setelah tanggal mulai kerja'
+    ]);
 
-        // Handle status_aktif checkbox
-        $data['status_aktif'] = $request->has('status_aktif') ? true : false;
-
-        // Handle file upload
-        if ($request->hasFile('foto')) {
-            $fotoPath = $request->file('foto')->store('foto-karyawan', 'public');
-            $data['foto'] = $fotoPath;
-        }
-
-        Karyawan::create($data);
-
-        return redirect()->route('karyawan.index')
-            ->with('success', 'Karyawan berhasil ditambahkan.');
+    if ($validator->fails()) {
+        return redirect()->back()
+            ->withErrors($validator)
+            ->withInput();
     }
+
+    // ✅ 1. Buat user baru terlebih dahulu
+    $barcode = Str::random(12);
+
+    $user = User::create([
+        'name' => $request->nama_lengkap,
+        'email' => $request->email,
+        'password' => bcrypt($barcode), // bisa diganti sesuai kebijakan
+        'role' => 'user',
+        'status' => 'active',
+        'phone' => $request->nomor_telepon,
+        'barcode_token' => $barcode,
+    ]);
+
+    // ✅ 2. Siapkan data karyawan
+    $data = $request->all();
+    $data['user_id'] = $user->id;
+    $data['status_aktif'] = $request->has('status_aktif') ? true : false;
+
+    if ($request->hasFile('foto')) {
+        $fotoPath = $request->file('foto')->store('foto-karyawan', 'public');
+        $data['foto'] = $fotoPath;
+    }
+
+    Karyawan::create($data);
+
+    return redirect()->route('karyawan.index')
+        ->with('success', 'Karyawan berhasil ditambahkan dan barcode token telah dihasilkan.');
+}
+
 
     public function show(Karyawan $karyawan)
     {

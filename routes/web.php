@@ -12,7 +12,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DepartemenController;
 use App\Http\Controllers\LokasiPresensiController;
 use App\Http\Controllers\Auth\BarcodeLoginController;
-use App\Http\Controllers\User\UserDashboardController;
+use App\Http\Controllers\User\KaryawanDashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,7 +40,7 @@ Route::get('/barcode-login/{token}', [BarcodeLoginController::class, 'login'])->
 Route::get('/barcode-scanner', [BarcodeLoginController::class, 'scanner'])->name('barcode.scanner');
                            
 
-Route::get('/user/dashboard', [UserDashboardController::class, 'index'])
+Route::get('/user/dashboard', [KaryawanDashboardController::class, 'index'])
     ->middleware('auth')
     ->name('user.dashboard');
 
@@ -94,4 +94,41 @@ Route::middleware(['auth'])->group(function () {
     Route::post('presensi/masuk', [PresensiController::class, 'storeMasuk'])->name('presensi.storeMasuk');
     Route::get('presensi/keluar', [PresensiController::class, 'createKeluar'])->name('presensi.keluar');
     Route::post('presensi/keluar', [PresensiController::class, 'storeKeluar'])->name('presensi.storeKeluar');
+});
+
+Route::middleware(['auth'])->group(function () {
+    
+    // Dashboard Karyawan
+    Route::get('/dashboard', [KaryawanDashboardController::class, 'index'])
+        ->name('karyawan.dashboard');
+    
+    Route::get('/profile', [KaryawanDashboardController::class, 'profile'])
+        ->name('karyawan.profile');
+    
+    // Presensi Routes
+    Route::prefix('presensi')->group(function () {
+        Route::get('/', [PresensiController::class, 'index'])->name('presensi.index');
+        Route::get('/create', [PresensiController::class, 'create'])->name('presensi.create');
+        Route::post('/masuk', [PresensiController::class, 'storeMasuk'])->name('presensi.masuk');
+        Route::post('/keluar', [PresensiController::class, 'storeKeluar'])->name('presensi.keluar');
+        Route::get('/history', [PresensiController::class, 'history'])->name('presensi.history');
+        Route::get('/{id}', [PresensiController::class, 'show'])->name('presensi.show');
+    });
+    
+    // Izin Routes
+    Route::prefix('izin')->group(function () {
+        Route::get('/', [IzinController::class, 'index'])->name('izin.index');
+        Route::get('/create', [IzinController::class, 'create'])->name('izin.create');
+        Route::post('/', [IzinController::class, 'store'])->name('izin.store');
+        Route::get('/{id}', [IzinController::class, 'show'])->name('izin.show');
+    });
+    
+    // Cuti Routes
+    Route::prefix('cuti')->group(function () {
+        Route::get('/', [CutiController::class, 'index'])->name('cuti.index');
+        Route::get('/create', [CutiController::class, 'create'])->name('cuti.create');
+        Route::post('/', [CutiController::class, 'store'])->name('cuti.store');
+        Route::get('/{id}', [CutiController::class, 'show'])->name('cuti.show');
+    });
+    
 });

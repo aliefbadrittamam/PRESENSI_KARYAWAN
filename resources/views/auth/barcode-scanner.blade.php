@@ -8,122 +8,249 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
     <style>
-        body {
-            background: #f5f7fa;
-            font-family: "Poppins", sans-serif;
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            color: #333;
+            padding: 20px;
         }
 
         .scanner-container {
             background: #fff;
-            padding: 1.8rem 1.5rem;
-            border-radius: 16px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-            width: 95%;
-            max-width: 420px;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 450px;
             text-align: center;
         }
 
         h2 {
-            font-size: 1.4rem;
-            color: #1d3557;
+            font-size: 1.5rem;
+            color: #333;
             margin-bottom: 0.5rem;
+            font-weight: 600;
         }
 
-        p {
-            color: #6c757d;
-            font-size: 0.95rem;
-            margin-bottom: 1rem;
+        .subtitle {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab:hover {
+            background: #5568d3;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
         }
 
         #reader {
             width: 100%;
-            margin: 0 auto;
+            margin: 0 auto 1rem;
             border-radius: 12px;
             overflow: hidden;
-            border: 3px solid #007bff;
+            border: 3px solid #667eea;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 12px;
+            padding: 40px 20px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 1rem;
+        }
+
+        .upload-area:hover {
+            background: #e9ecef;
+            border-color: #5568d3;
+        }
+
+        .upload-area.dragover {
+            background: #d4e3fc;
+            border-color: #667eea;
+        }
+
+        .upload-area i {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .upload-area p {
+            color: #666;
+            margin: 0;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        #preview {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        #preview.show {
+            display: block;
         }
 
         #status {
-            margin-top: 1rem;
-            font-size: 0.95rem;
-            color: #6c757d;
-            min-height: 24px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            background: #f0f0f0;
+            color: #333;
+            min-height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .success {
-            color: #28a745 !important;
-            font-weight: 600;
+        #status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
         }
 
-        .error {
-            color: #dc3545 !important;
-            font-weight: 600;
+        #status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
 
-        .warning {
-            color: #ff9800 !important;
-            font-weight: 600;
+        #status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
         }
 
         button {
-            background: #007bff;
+            background: #667eea;
             border: none;
             color: white;
-            padding: 10px 15px;
-            border-radius: 6px;
-            margin-top: 12px;
+            padding: 12px 20px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 0.9rem;
-            margin: 8px 4px;
+            font-weight: 500;
+            margin: 5px;
+            transition: all 0.3s;
         }
 
         button:hover {
-            background: #0056b3;
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
         }
 
         button:disabled {
             background: #ccc;
             cursor: not-allowed;
+            transform: none;
         }
 
         #result {
             margin-top: 1rem;
-            padding: 12px;
+            padding: 15px;
             background: #f8f9fa;
             border-radius: 8px;
             font-size: 0.85rem;
             word-break: break-all;
             display: none;
-            max-height: 200px;
-            overflow-y: auto;
+            border-left: 4px solid #667eea;
+            text-align: left;
         }
 
         #result.show {
             display: block;
         }
 
-        .redirect-info {
-            background: #e3f2fd;
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 12px;
-            font-size: 0.9rem;
+        #result strong {
+            display: block;
+            margin-bottom: 8px;
+            color: #667eea;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         @media (max-width: 480px) {
             .scanner-container {
-                padding: 1.5rem 1rem;
+                padding: 1.5rem;
             }
 
             h2 {
-                font-size: 1.2rem;
+                font-size: 1.3rem;
             }
         }
     </style>
@@ -131,17 +258,48 @@
 
 <body>
     <div class="scanner-container">
-        <h2><i class="fas fa-qrcode me-2"></i>Login dengan Scan QR Code</h2>
-        <p>Arahkan kamera ke QR Code pada profil Anda untuk login otomatis</p>
+        <h2><i class="fas fa-qrcode"></i> Scan QR Code</h2>
+        <p class="subtitle">Pilih metode scan QR Code</p>
 
-        <div id="reader"></div>
-        <p id="status">Menyiapkan kamera...</p>
-        
-        <div>
-            <button id="switchCamBtn" style="display:none;">Ganti Kamera</button>
-            <button id="restartBtn" style="display:none;">Restart Scanner</button>
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('camera')">
+                <i class="fas fa-camera"></i> Kamera
+            </button>
+            <button class="tab" onclick="switchTab('upload')">
+                <i class="fas fa-image"></i> Upload Gambar
+            </button>
         </div>
-        
+
+        <!-- Camera Tab -->
+        <div id="cameraTab" class="tab-content active">
+            <div id="reader"></div>
+            <div id="status">Menyiapkan kamera...</div>
+            <div class="btn-group">
+                <button id="switchCamBtn" style="display:none;">
+                    <i class="fas fa-sync-alt"></i> Ganti Kamera
+                </button>
+                <button id="restartBtn" style="display:none;">
+                    <i class="fas fa-redo"></i> Restart
+                </button>
+            </div>
+        </div>
+
+        <!-- Upload Tab -->
+        <div id="uploadTab" class="tab-content">
+            <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p><strong>Klik untuk pilih gambar</strong></p>
+                <p style="font-size: 0.85rem; margin-top: 8px;">atau drag & drop gambar QR Code di sini</p>
+            </div>
+            <input type="file" id="fileInput" accept="image/*" />
+            <img id="preview" alt="Preview" />
+            <div id="statusUpload" style="display:none;"></div>
+            <button id="clearBtn" style="display:none;">
+                <i class="fas fa-times"></i> Batal
+            </button>
+        </div>
+
         <div id="result"></div>
     </div>
 
@@ -149,153 +307,134 @@
         let html5QrCode = null;
         let cameras = [];
         let currentCameraIndex = 0;
-        let isScanning = true;
-        let scanProcessing = false; // Prevent multiple simultaneous scans
+        let hasScanned = false;
+        let currentTab = 'camera';
 
         const statusEl = document.getElementById('status');
+        const statusUploadEl = document.getElementById('statusUpload');
         const switchBtn = document.getElementById('switchCamBtn');
         const restartBtn = document.getElementById('restartBtn');
         const resultEl = document.getElementById('result');
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const preview = document.getElementById('preview');
+        const clearBtn = document.getElementById('clearBtn');
 
-        function showStatus(message, type = '') {
-            statusEl.textContent = message;
-            statusEl.className = type;
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.closest('.tab').classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            if (tab === 'camera') {
+                document.getElementById('cameraTab').classList.add('active');
+                if (!html5QrCode || !html5QrCode.isScanning) {
+                    init();
+                }
+            } else {
+                document.getElementById('uploadTab').classList.add('active');
+                if (html5QrCode && html5QrCode.isScanning) {
+                    stopScanning();
+                }
+            }
+
+            // Clear result
+            resultEl.className = '';
+            hasScanned = false;
+        }
+
+        function setStatus(message, type = '') {
+            if (currentTab === 'camera') {
+                statusEl.textContent = message;
+                statusEl.className = type;
+            } else {
+                statusUploadEl.textContent = message;
+                statusUploadEl.className = 'status ' + type;
+                statusUploadEl.style.display = 'block';
+            }
         }
 
         function showResult(text) {
-            resultEl.innerHTML = '<strong>QR Terdeteksi:</strong><br>' + text;
+            resultEl.innerHTML = `<strong>QR Code Terdeteksi:</strong>${text}`;
             resultEl.className = 'show';
         }
 
-        function isValidUrl(string) {
-            try {
-                // Check if it starts with http/https
-                if (string.startsWith('http://') || string.startsWith('https://')) {
-                    new URL(string);
-                    return true;
-                }
-                
-                // Check if it starts with www.
-                if (string.startsWith('www.')) {
-                    new URL('https://' + string);
-                    return true;
-                }
-                
-                // Check if it contains domain pattern
-                const domainPattern = /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}(\/.*)?$/;
-                if (domainPattern.test(string)) {
-                    new URL('https://' + string);
-                    return true;
-                }
-                
-                return false;
-            } catch (e) {
-                return false;
-            }
-        }
+        function processQRCode(decodedText) {
+            console.log('╔════════════════════════════════════╗');
+            console.log('║      QR CODE DETECTED!             ║');
+            console.log('╚════════════════════════════════════╝');
+            console.log('📱 Raw Data:', decodedText);
+            console.log('📏 Length:', decodedText.length);
+            console.log('🔤 Type:', typeof decodedText);
 
-        function onScanSuccess(decodedText, decodedResult) {
-            // Prevent multiple simultaneous processing
-            if (scanProcessing) {
-                console.log('Already processing a scan, ignoring...');
-                return;
-            }
-            
-            scanProcessing = true;
-            
-            console.log('=================================');
-            console.log('QR CODE DETECTED!');
-            console.log('Raw Data:', decodedText);
-            console.log('Decoded Result:', decodedResult);
-            console.log('Data Length:', decodedText.length);
-            console.log('Data Type:', typeof decodedText);
-            console.log('=================================');
-            
-            // Stop scanning immediately
-            isScanning = false;
-            
-            showStatus('✓ QR Code Berhasil Terbaca!', 'success');
+            setStatus('✓ QR Code berhasil terbaca!', 'success');
             showResult(decodedText);
-            
-            // Check if it's a valid URL
-            if (isValidUrl(decodedText)) {
-                let targetUrl = decodedText;
-                
-                // Add protocol if missing
-                if (decodedText.startsWith('www.')) {
-                    targetUrl = 'https://' + decodedText;
-                } else if (!decodedText.startsWith('http://') && !decodedText.startsWith('https://')) {
-                    targetUrl = 'https://' + decodedText;
+
+            // Check if URL
+            if (decodedText.includes('http') || decodedText.includes('.')) {
+                let url = decodedText.trim();
+
+                // Ensure protocol
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    if (url.startsWith('www.')) {
+                        url = 'https://' + url;
+                    } else if (url.includes('.')) {
+                        url = 'https://' + url;
+                    }
                 }
-                
-                console.log('Valid URL detected!');
-                console.log('Original:', decodedText);
-                console.log('Target URL:', targetUrl);
-                
-                showStatus('🚀 Mengarahkan ke: ' + targetUrl, 'success');
-                
-                resultEl.innerHTML += '<div class="redirect-info">⏳ Redirecting dalam 2 detik...</div>';
-                
-                // Stop camera before redirect
-                html5QrCode.stop().then(() => {
-                    console.log('Camera stopped, redirecting...');
-                    
-                    // Delay redirect so user can see the message
-                    setTimeout(() => {
-                        console.log('Executing redirect to:', targetUrl);
-                        window.location.href = targetUrl;
-                    }, 2000);
-                }).catch(err => {
-                    console.error('Error stopping camera:', err);
-                    // Redirect anyway
-                    setTimeout(() => {
-                        window.location.href = targetUrl;
-                    }, 2000);
-                });
-                
-            } else {
-                console.warn('Not a valid URL!');
-                showStatus('⚠️ QR Code bukan URL yang valid', 'warning');
-                resultEl.innerHTML += '<div class="redirect-info" style="background: #fff3cd;">Ini bukan URL login. Pastikan Anda scan QR Code yang benar.</div>';
-                
-                // Restart scanning after 4 seconds
+
+                console.log('🚀 Redirecting to:', url);
+                setStatus('Redirecting ke: ' + url, 'success');
+
                 setTimeout(() => {
-                    scanProcessing = false;
-                    isScanning = true;
-                    showStatus('Scanning aktif kembali...', '');
-                    resultEl.className = '';
-                }, 4000);
+                    console.log('🔄 Executing redirect NOW...');
+                    window.location.href = url;
+                }, 1500);
+
+            } else {
+                console.warn('⚠️ Not a URL:', decodedText);
+                setStatus('⚠️ Bukan URL yang valid', 'warning');
+                hasScanned = false;
             }
         }
 
-        function onScanError(errorMessage) {
-            // Silent - don't log every frame error
+        function onScanSuccess(decodedText) {
+            if (hasScanned) return;
+            hasScanned = true;
+
+            html5QrCode.stop().then(() => {
+                processQRCode(decodedText);
+            }).catch(err => {
+                console.error('Error stopping camera:', err);
+                processQRCode(decodedText);
+            });
+        }
+
+        function onScanError(err) {
+            // Silent
         }
 
         async function startScanning(cameraId) {
             try {
-                showStatus('Memulai kamera...', '');
-                
+                setStatus('Memulai kamera...');
+
                 const config = {
                     fps: 10,
-                    qrbox: { width: 250, height: 250 },
-                    aspectRatio: 1.0
+                    qrbox: { width: 250, height: 250 }
                 };
 
-                await html5QrCode.start(
-                    cameraId,
-                    config,
-                    onScanSuccess,
-                    onScanError
-                );
+                await html5QrCode.start(cameraId, config, onScanSuccess, onScanError);
 
-                showStatus('✓ Kamera aktif - Arahkan ke QR Code', 'success');
-                isScanning = true;
-                scanProcessing = false;
-                
+                setStatus('✓ Kamera siap - Scan QR Code', 'success');
+                hasScanned = false;
+
             } catch (err) {
-                console.error('Error starting camera:', err);
-                showStatus('Error: ' + err.message, 'error');
+                console.error('❌ Camera error:', err);
+                setStatus('Error: ' + err.message, 'error');
                 restartBtn.style.display = 'inline-block';
             }
         }
@@ -306,78 +445,139 @@
                     await html5QrCode.stop();
                 }
             } catch (err) {
-                console.error('Error stopping:', err);
+                console.error('Stop error:', err);
             }
         }
 
-        async function initScanner() {
+        async function init() {
             try {
-                html5QrCode = new Html5Qrcode("reader");
-                
+                console.log('🔧 Initializing scanner...');
+
+                if (!html5QrCode) {
+                    html5QrCode = new Html5Qrcode("reader");
+                }
+
                 cameras = await Html5Qrcode.getCameras();
-                
+
                 if (!cameras || cameras.length === 0) {
-                    showStatus('Tidak ada kamera ditemukan!', 'error');
+                    setStatus('❌ Tidak ada kamera!', 'error');
                     return;
                 }
 
-                console.log('Cameras found:', cameras.length);
-                cameras.forEach((cam, idx) => {
-                    console.log(`Camera ${idx + 1}:`, cam.label);
-                });
+                console.log('📷 Cameras found:', cameras.length);
 
-                let backCameraIndex = cameras.findIndex(camera => 
-                    camera.label.toLowerCase().includes('back') ||
-                    camera.label.toLowerCase().includes('rear') ||
-                    camera.label.toLowerCase().includes('environment')
+                let backCamIdx = cameras.findIndex(c =>
+                    c.label.toLowerCase().includes('back') ||
+                    c.label.toLowerCase().includes('rear') ||
+                    c.label.toLowerCase().includes('environment')
                 );
 
-                currentCameraIndex = backCameraIndex >= 0 ? backCameraIndex : 0;
-                
+                currentCameraIndex = backCamIdx >= 0 ? backCamIdx : 0;
+
                 if (cameras.length > 1) {
                     switchBtn.style.display = 'inline-block';
                 }
 
                 await startScanning(cameras[currentCameraIndex].id);
-                
+
             } catch (err) {
-                console.error('Init error:', err);
-                showStatus('Gagal initialize: ' + err.message, 'error');
-                resultEl.innerHTML = '<strong>Error Detail:</strong><br>' + err.message;
-                resultEl.className = 'show';
+                console.error('❌ Init error:', err);
+                setStatus('Gagal initialize: ' + err.message, 'error');
             }
         }
 
-        switchBtn.addEventListener('click', async () => {
+        // File input handler
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            console.log('📁 File selected:', file.name);
+            setStatus('Memproses gambar...', '');
+
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                preview.src = event.target.result;
+                preview.classList.add('show');
+                clearBtn.style.display = 'inline-block';
+            };
+            reader.readAsDataURL(file);
+
+            // Scan QR from image
             try {
-                await stopScanning();
-                currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
-                showStatus('Ganti ke kamera ' + (currentCameraIndex + 1), '');
-                await startScanning(cameras[currentCameraIndex].id);
+                if (!html5QrCode) {
+                    html5QrCode = new Html5Qrcode("reader");
+                }
+
+                const result = await html5QrCode.scanFile(file, true);
+                console.log('✓ QR Code found in image');
+                processQRCode(result);
+
             } catch (err) {
-                console.error('Switch camera error:', err);
-                showStatus('Gagal ganti kamera', 'error');
+                console.error('❌ Scan error:', err);
+                setStatus('Tidak ada QR Code terdeteksi di gambar', 'error');
             }
         });
 
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                fileInput.files = e.dataTransfer.files;
+                fileInput.dispatchEvent(new Event('change'));
+            } else {
+                setStatus('File harus berupa gambar!', 'error');
+            }
+        });
+
+        // Clear button
+        clearBtn.addEventListener('click', () => {
+            fileInput.value = '';
+            preview.src = '';
+            preview.classList.remove('show');
+            clearBtn.style.display = 'none';
+            statusUploadEl.style.display = 'none';
+            resultEl.className = '';
+            hasScanned = false;
+        });
+
+        // Switch camera
+        switchBtn.addEventListener('click', async () => {
+            await stopScanning();
+            currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
+            setStatus('Ganti ke kamera ' + (currentCameraIndex + 1));
+            await startScanning(cameras[currentCameraIndex].id);
+        });
+
+        // Restart
         restartBtn.addEventListener('click', async () => {
             restartBtn.style.display = 'none';
             resultEl.className = '';
-            scanProcessing = false;
+            hasScanned = false;
             await stopScanning();
-            await initScanner();
+            await init();
         });
 
+        // Start
         window.addEventListener('load', () => {
             if (typeof Html5Qrcode === 'undefined') {
-                showStatus('Library gagal dimuat!', 'error');
+                setStatus('❌ Library gagal dimuat!', 'error');
                 return;
             }
-            
-            console.log('Initializing QR Scanner...');
-            initScanner();
+            init();
         });
-
     </script>
 </body>
 
