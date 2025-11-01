@@ -8,6 +8,7 @@ use App\Http\Controllers\JabatanController;
 use App\Http\Controllers\FakultasController;
 use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\PresensiController;
+use App\Http\Controllers\User\KaryawanPresensiController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DepartemenController;
 use App\Http\Controllers\LokasiPresensiController;
@@ -163,16 +164,16 @@ Route::middleware(['auth'])->group(function () {
     */
     Route::prefix('presensi')->group(function () {
         // Admin presensi management
-        Route::get('/rekap', [PresensiController::class, 'rekap'])->name('presensi.rekap');
+        Route::get('/rekap', [KaryawanPresensiController::class, 'rekap'])->name('presensi.rekap');
         
         // Legacy routes (if still needed)
-        Route::get('/masuk', [PresensiController::class, 'createMasuk'])->name('presensi.createMasuk');
-        Route::get('/keluar', [PresensiController::class, 'createKeluar'])->name('presensi.createKeluar');
-        Route::post('/masuk', [PresensiController::class, 'storeMasuk'])->name('presensi.storeMasuk');
-        Route::post('/keluar', [PresensiController::class, 'storeKeluar'])->name('presensi.storeKeluar');
+        Route::get('/masuk', [KaryawanPresensiController::class, 'createMasuk'])->name('presensi.createMasuk');
+        Route::get('/keluar', [KaryawanPresensiController::class, 'createKeluar'])->name('presensi.createKeluar');
+        Route::post('/masuk', [KaryawanPresensiController::class, 'storeMasuk'])->name('presensi.storeMasuk');
+        Route::post('/keluar', [KaryawanPresensiController::class, 'storeKeluar'])->name('presensi.storeKeluar');
     });
     
     // Resource route untuk CRUD admin presensi
-    Route::resource('presensi', PresensiController::class)
+    Route::resource('presensi', KaryawanPresensiController::class)
         ->except(['create', 'store']); // exclude karena sudah ada custom routes
 });
