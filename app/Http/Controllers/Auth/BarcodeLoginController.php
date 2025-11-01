@@ -18,6 +18,11 @@ class BarcodeLoginController extends Controller
 
         Auth::login($user);
 
+        // Check user role and redirect accordingly
+        if ($user->role === 'admin') {
+            return redirect()->route('home')->with('success', 'Login via barcode berhasil!');
+        }
+        
         // arahkan ke dashboard user
         return redirect()->route('user.dashboard')->with('success', 'Login via barcode berhasil!');
     }
