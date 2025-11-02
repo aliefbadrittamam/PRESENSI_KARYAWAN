@@ -15,7 +15,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class PresensiController extends Controller
 {
     /**
-     * Display rekap presensi page
+     * Display rekap presensi page (ADMIN)
      */
     public function index(Request $request)
     {
@@ -24,7 +24,13 @@ class PresensiController extends Controller
         
         // Default values
         $tipeRekap = $request->input('tipe_rekap', 'bulanan');
-        $periode = $request->input('periode', Carbon::now()->format('Y-m'));
+        $periode = $request->input('periode');
+        
+        // Set default periode jika kosong
+        if (empty($periode)) {
+            $periode = Carbon::now()->format('Y-m');
+        }
+        
         $idFakultas = $request->input('id_fakultas');
         $idDepartemen = $request->input('id_departemen');
         
@@ -42,13 +48,16 @@ class PresensiController extends Controller
         
         $karyawanList = $query->get();
         
-        // Get rekap data if filters applied
+        // Get rekap data if filters applied (dan periode tidak kosong)
         $rekapData = null;
-        if ($request->has('periode')) {
+        if ($request->has('periode') && !empty($periode)) {
             $rekapData = $this->generateRekap($karyawanList, $tipeRekap, $periode);
         }
         
-        return view('admin.rekap.index', compact(
+        // Generate months for dropdown (untuk kompatibilitas view)
+        $months = $this->generateMonthOptions($periode);
+        
+        return view('presensi.rekap', compact(
             'fakultas',
             'departemen',
             'tipeRekap',
@@ -56,8 +65,36 @@ class PresensiController extends Controller
             'idFakultas',
             'idDepartemen',
             'karyawanList',
-            'rekapData'
+            'rekapData',
+            'months' // TAMBAHKAN INI
         ));
+    }
+    
+    /**
+     * Generate month options (untuk dropdown)
+     */
+    private function generateMonthOptions($selectedMonth)
+    {
+        $months = [];
+        $monthNames = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+
+        for ($i = 0; $i < 12; $i++) {
+            $date = Carbon::now()->subMonths($i);
+            $value = $date->format('Y-m');
+            $label = $monthNames[$date->month] . ' ' . $date->year;
+            
+            $months[] = [
+                'value' => $value,
+                'label' => $label,
+                'selected' => $value === $selectedMonth
+            ];
+        }
+
+        return $months;
     }
     
     /**
@@ -85,6 +122,11 @@ class PresensiController extends Controller
      */
     private function getRekapBulanan($karyawan, $periode)
     {
+        // Validasi periode
+        if (empty($periode) || strpos($periode, '-') === false) {
+            $periode = Carbon::now()->format('Y-m');
+        }
+        
         list($tahun, $bulan) = explode('-', $periode);
         
         $startDate = Carbon::createFromDate($tahun, $bulan, 1)->startOfMonth();
@@ -98,9 +140,14 @@ class PresensiController extends Controller
      */
     private function getRekapMingguan($karyawan, $periode)
     {
+        // Validasi periode untuk format mingguan (Y-W01)
+        if (empty($periode) || strpos($periode, '-W') === false) {
+            $periode = Carbon::now()->format('Y') . '-W' . Carbon::now()->format('W');
+        }
+        
         // Format periode: Y-W (contoh: 2025-W01)
         $year = substr($periode, 0, 4);
-        $week = substr($periode, 6);
+        $week = (int) substr($periode, 6);
         
         $startDate = Carbon::now()->setISODate($year, $week)->startOfWeek();
         $endDate = Carbon::now()->setISODate($year, $week)->endOfWeek();
@@ -165,7 +212,7 @@ class PresensiController extends Controller
             'jumlah_izin' => $jumlahIzin,
             'jumlah_sakit' => $jumlahSakit,
             'jumlah_cuti' => $jumlahCuti,
-            'jumlah_alpha' => $jumlahAlpha,
+            'jumlah_alpha' => max(0, $jumlahAlpha),
             'persentase_kehadiran' => round($persentaseKehadiran, 2),
             'persentase_terlambat' => round($persentaseTerlambat, 2),
             'persentase_tidak_hadir' => round($persentaseTidakHadir, 2),
@@ -176,12 +223,27 @@ class PresensiController extends Controller
     }
     
     /**
+     * Method rekap() untuk route /presensi/rekap
+     * Alias dari index() untuk backward compatibility
+     */
+    public function rekap(Request $request)
+    {
+        return $this->index($request);
+    }
+    
+    /**
      * Download PDF
      */
     public function downloadPdf(Request $request)
     {
         $tipeRekap = $request->input('tipe_rekap', 'bulanan');
-        $periode = $request->input('periode', Carbon::now()->format('Y-m'));
+        $periode = $request->input('periode');
+        
+        // Set default periode jika kosong
+        if (empty($periode)) {
+            $periode = Carbon::now()->format('Y-m');
+        }
+        
         $idFakultas = $request->input('id_fakultas');
         $idDepartemen = $request->input('id_departemen');
         
@@ -202,6 +264,11 @@ class PresensiController extends Controller
         
         // Format periode untuk judul
         if ($tipeRekap === 'bulanan') {
+            // Validasi format periode
+            if (strpos($periode, '-') === false) {
+                $periode = Carbon::now()->format('Y-m');
+            }
+            
             list($tahun, $bulan) = explode('-', $periode);
             $bulanNama = [
                 '01' => 'Januari', '02' => 'Februari', '03' => 'Maret',
@@ -209,7 +276,7 @@ class PresensiController extends Controller
                 '07' => 'Juli', '08' => 'Agustus', '09' => 'September',
                 '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
             ];
-            $periodeText = $bulanNama[$bulan] . ' ' . $tahun;
+            $periodeText = ($bulanNama[$bulan] ?? 'Unknown') . ' ' . $tahun;
         } else {
             $year = substr($periode, 0, 4);
             $week = substr($periode, 6);

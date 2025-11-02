@@ -1,272 +1,245 @@
 @extends('layouts.app')
 
-@section('title', 'Rekap Presensi Saya')
+@section('title', 'Rekap Presensi Karyawan')
 
 @section('content')
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <!-- Filter Card -->
             <div class="card">
                 <div class="card-header bg-primary text-white">
                     <h4 class="mb-0">
-                        <i class="fas fa-chart-line"></i> Rekap Presensi Saya
+                        <i class="fas fa-chart-bar"></i> Rekap Presensi Karyawan
                     </h4>
                 </div>
+                
                 <div class="card-body">
-                    <form method="GET" action="{{ route('presensi.rekap') }}">
+                    <!-- Filter Form -->
+                    <form method="GET" action="{{ route('admin.presensi.rekap') }}" id="filterForm">
                         <div class="row">
-                            <div class="col-md-4">
+                            <!-- Tipe Rekap -->
+                            <div class="col-md-3">
                                 <div class="form-group">
-                                    <label>Pilih Bulan</label>
-                                    <select name="bulan" class="form-control" onchange="this.form.submit()">
-                                        @foreach($months as $month)
-                                            <option value="{{ $month['value'] }}" {{ $month['selected'] ? 'selected' : '' }}>
-                                                {{ $month['label'] }}
+                                    <label>Tipe Rekap</label>
+                                    <select name="tipe_rekap" class="form-control" id="tipeRekap" required>
+                                        <option value="bulanan" {{ $tipeRekap === 'bulanan' ? 'selected' : '' }}>Bulanan</option>
+                                        <option value="mingguan" {{ $tipeRekap === 'mingguan' ? 'selected' : '' }}>Mingguan</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Periode -->
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Periode</label>
+                                    <input type="month" name="periode" class="form-control" id="periodeBulanan" 
+                                        value="{{ $periode }}" {{ $tipeRekap === 'bulanan' ? '' : 'style=display:none' }} required>
+                                    <input type="week" name="periode" class="form-control" id="periodeMingguan" 
+                                        value="{{ $periode }}" {{ $tipeRekap === 'mingguan' ? '' : 'style=display:none' }} required>
+                                </div>
+                            </div>
+                            
+                            <!-- Fakultas -->
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Fakultas (Opsional)</label>
+                                    <select name="id_fakultas" class="form-control" id="fakultasSelect">
+                                        <option value="">Semua Fakultas</option>
+                                        @foreach($fakultas as $fak)
+                                            <option value="{{ $fak->id_fakultas }}" {{ $idFakultas == $fak->id_fakultas ? 'selected' : '' }}>
+                                                {{ $fak->nama_fakultas }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Departemen -->
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Departemen (Opsional)</label>
+                                    <select name="id_departemen" class="form-control" id="departemenSelect">
+                                        <option value="">Semua Departemen</option>
+                                        @foreach($departemen as $dept)
+                                            <option value="{{ $dept->id_departemen }}" 
+                                                data-fakultas="{{ $dept->id_fakultas }}"
+                                                {{ $idDepartemen == $dept->id_departemen ? 'selected' : '' }}>
+                                                {{ $dept->nama_departemen }}
                                             </option>
                                         @endforeach
                                     </select>
                                 </div>
                             </div>
                         </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search"></i> Tampilkan Rekap
+                                </button>
+                                @if($rekapData)
+                                <button type="button" class="btn btn-success" id="downloadPdfBtn">
+                                    <i class="fas fa-file-pdf"></i> Download PDF
+                                </button>
+                                @endif
+                            </div>
+                        </div>
                     </form>
                 </div>
             </div>
-
-            <!-- Statistics Cards -->
-            <div class="row mt-4">
-                <div class="col-md-3">
-                    <div class="card bg-success text-white">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-0">Hadir</h6>
-                                    <h2 class="mb-0">{{ $rekap['jumlah_hadir'] }}</h2>
-                                </div>
-                                <i class="fas fa-check-circle fa-3x opacity-50"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-3">
-                    <div class="card bg-warning text-white">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-0">Terlambat</h6>
-                                    <h2 class="mb-0">{{ $rekap['jumlah_terlambat'] }}</h2>
-                                    <small>Avg: {{ $rekap['rata_rata_terlambat'] }} mnt</small>
-                                </div>
-                                <i class="fas fa-clock fa-3x opacity-50"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-3">
-                    <div class="card bg-info text-white">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-0">Izin/Sakit/Cuti</h6>
-                                    <h2 class="mb-0">{{ $rekap['jumlah_izin'] + $rekap['jumlah_sakit'] + $rekap['jumlah_cuti'] }}</h2>
-                                    <small>{{ $rekap['jumlah_izin'] }}I, {{ $rekap['jumlah_sakit'] }}S, {{ $rekap['jumlah_cuti'] }}C</small>
-                                </div>
-                                <i class="fas fa-file-medical fa-3x opacity-50"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-3">
-                    <div class="card bg-danger text-white">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-0">Alpha</h6>
-                                    <h2 class="mb-0">{{ $rekap['jumlah_alpha'] }}</h2>
-                                </div>
-                                <i class="fas fa-times-circle fa-3x opacity-50"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Summary Card -->
-            <div class="row mt-4">
-                <div class="col-md-12">
-                    <div class="card">
-                        <div class="card-header bg-secondary text-white">
-                            <h5 class="mb-0">Ringkasan Kehadiran</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <strong>Total Hari Kerja:</strong>
-                                        <span class="float-right">{{ $rekap['total_hari_kerja'] }} hari</span>
-                                    </div>
-                                    <div class="mb-3">
-                                        <strong>Persentase Kehadiran:</strong>
-                                        <span class="float-right">
-                                            @if($rekap['persentase_kehadiran'] >= 90)
-                                                <span class="badge badge-success">{{ $rekap['persentase_kehadiran'] }}%</span>
-                                            @elseif($rekap['persentase_kehadiran'] >= 75)
-                                                <span class="badge badge-warning">{{ $rekap['persentase_kehadiran'] }}%</span>
-                                            @else
-                                                <span class="badge badge-danger">{{ $rekap['persentase_kehadiran'] }}%</span>
-                                            @endif
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <strong>Total Menit Terlambat:</strong>
-                                        <span class="float-right">{{ $rekap['total_menit_terlambat'] }} menit</span>
-                                    </div>
-                                    <div class="mb-3">
-                                        <strong>Rata-rata Terlambat:</strong>
-                                        <span class="float-right">{{ $rekap['rata_rata_terlambat'] }} menit</span>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <strong>Total Jam Kerja:</strong>
-                                        <span class="float-right">{{ $rekap['total_jam_kerja'] }} jam</span>
-                                    </div>
-                                    <div class="mb-3">
-                                        <strong>Status:</strong>
-                                        <span class="float-right">
-                                            @if($rekap['persentase_kehadiran'] >= 90)
-                                                <span class="badge badge-success">Excellent</span>
-                                            @elseif($rekap['persentase_kehadiran'] >= 75)
-                                                <span class="badge badge-warning">Good</span>
-                                            @else
-                                                <span class="badge badge-danger">Need Improvement</span>
-                                            @endif
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Progress Bar -->
-                            <div class="mt-4">
-                                <label>Kehadiran</label>
-                                <div class="progress" style="height: 25px;">
-                                    @php
-                                        $hadir_persen = $rekap['total_hari_kerja'] > 0 ? ($rekap['jumlah_hadir'] / $rekap['total_hari_kerja']) * 100 : 0;
-                                        $terlambat_persen = $rekap['total_hari_kerja'] > 0 ? ($rekap['jumlah_terlambat'] / $rekap['total_hari_kerja']) * 100 : 0;
-                                        $izin_persen = $rekap['total_hari_kerja'] > 0 ? (($rekap['jumlah_izin'] + $rekap['jumlah_sakit'] + $rekap['jumlah_cuti']) / $rekap['total_hari_kerja']) * 100 : 0;
-                                        $alpha_persen = $rekap['total_hari_kerja'] > 0 ? ($rekap['jumlah_alpha'] / $rekap['total_hari_kerja']) * 100 : 0;
-                                    @endphp
-                                    
-                                    @if($hadir_persen > 0)
-                                    <div class="progress-bar bg-success" style="width: {{ $hadir_persen }}%">
-                                        {{ round($hadir_persen) }}%
-                                    </div>
-                                    @endif
-                                    
-                                    @if($terlambat_persen > 0)
-                                    <div class="progress-bar bg-warning" style="width: {{ $terlambat_persen }}%">
-                                        {{ round($terlambat_persen) }}%
-                                    </div>
-                                    @endif
-                                    
-                                    @if($izin_persen > 0)
-                                    <div class="progress-bar bg-info" style="width: {{ $izin_persen }}%">
-                                        {{ round($izin_persen) }}%
-                                    </div>
-                                    @endif
-                                    
-                                    @if($alpha_persen > 0)
-                                    <div class="progress-bar bg-danger" style="width: {{ $alpha_persen }}%">
-                                        {{ round($alpha_persen) }}%
-                                    </div>
-                                    @endif
-                                </div>
-                                <div class="mt-2">
-                                    <small>
-                                        <span class="badge badge-success">Hadir</span>
-                                        <span class="badge badge-warning">Terlambat</span>
-                                        <span class="badge badge-info">Izin/Sakit/Cuti</span>
-                                        <span class="badge badge-danger">Alpha</span>
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Detail Table -->
+            
+            @if($rekapData)
             <div class="card mt-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Detail Presensi</h5>
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Hasil Rekap Presensi</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-bordered table-striped">
+                        <table class="table table-bordered table-striped table-hover">
                             <thead class="thead-dark">
                                 <tr>
-                                    <th>Tanggal</th>
-                                    <th>Jam Masuk</th>
-                                    <th>Jam Keluar</th>
-                                    <th>Status</th>
+                                    <th>No</th>
+                                    <th>NIP</th>
+                                    <th>Nama Karyawan</th>
+                                    <th>Fakultas</th>
+                                    <th>Departemen</th>
+                                    <th>Hari Kerja</th>
+                                    <th>Hadir</th>
                                     <th>Terlambat</th>
+                                    <th>Izin</th>
+                                    <th>Sakit</th>
+                                    <th>Cuti</th>
+                                    <th>Alpha</th>
+                                    <th>% Kehadiran</th>
                                     <th>Total Jam</th>
-                                    <th>Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($presensiList as $presensi)
+                                @forelse($rekapData as $index => $data)
                                 <tr>
-                                    <td>{{ \Carbon\Carbon::parse($presensi->tanggal_presensi)->format('d/m/Y') }}</td>
-                                    <td>{{ $presensi->jam_masuk ?? '-' }}</td>
-                                    <td>{{ $presensi->jam_keluar ?? '-' }}</td>
-                                    <td>
-                                        @if($presensi->status_kehadiran === 'hadir')
-                                            <span class="badge badge-success">Hadir</span>
-                                        @elseif($presensi->status_kehadiran === 'terlambat')
-                                            <span class="badge badge-warning">Terlambat</span>
-                                        @elseif($presensi->status_kehadiran === 'izin')
-                                            <span class="badge badge-info">Izin</span>
-                                        @elseif($presensi->status_kehadiran === 'sakit')
-                                            <span class="badge badge-secondary">Sakit</span>
-                                        @elseif($presensi->status_kehadiran === 'cuti')
-                                            <span class="badge badge-primary">Cuti</span>
-                                        @else
-                                            <span class="badge badge-danger">Alpha</span>
+                                    <td>{{ $index + 1 }}</td>
+                                    <td>{{ $data['karyawan']->nip }}</td>
+                                    <td>{{ $data['karyawan']->nama_lengkap }}</td>
+                                    <td>{{ $data['karyawan']->fakultas->nama_fakultas }}</td>
+                                    <td>{{ $data['karyawan']->departemen->nama_departemen }}</td>
+                                    <td class="text-center">{{ $data['total_hari_kerja'] }}</td>
+                                    <td class="text-center">
+                                        <span class="badge badge-success">{{ $data['jumlah_hadir'] }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge badge-warning">{{ $data['jumlah_terlambat'] }}</span>
+                                        @if($data['jumlah_terlambat'] > 0)
+                                        <br><small class="text-muted">({{ $data['rata_rata_terlambat'] }} mnt/hari)</small>
                                         @endif
                                     </td>
-                                    <td>{{ $presensi->keterlambatan_menit > 0 ? $presensi->keterlambatan_menit . ' menit' : '-' }}</td>
-                                    <td>{{ $presensi->total_jam_kerja ? number_format($presensi->total_jam_kerja, 1) . ' jam' : '-' }}</td>
-                                    <td>
-                                        <a href="{{ route('presensi.show', $presensi->id_presensi) }}" class="btn btn-sm btn-info">
-                                            <i class="fas fa-eye"></i> Detail
-                                        </a>
+                                    <td class="text-center">
+                                        <span class="badge badge-info">{{ $data['jumlah_izin'] }}</span>
                                     </td>
+                                    <td class="text-center">
+                                        <span class="badge badge-secondary">{{ $data['jumlah_sakit'] }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge badge-primary">{{ $data['jumlah_cuti'] }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge badge-danger">{{ $data['jumlah_alpha'] }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        @if($data['persentase_kehadiran'] >= 90)
+                                            <span class="badge badge-success">{{ $data['persentase_kehadiran'] }}%</span>
+                                        @elseif($data['persentase_kehadiran'] >= 75)
+                                            <span class="badge badge-warning">{{ $data['persentase_kehadiran'] }}%</span>
+                                        @else
+                                            <span class="badge badge-danger">{{ $data['persentase_kehadiran'] }}%</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-center">{{ $data['total_jam_kerja'] }} jam</td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="7" class="text-center">Tidak ada data presensi</td>
+                                    <td colspan="14" class="text-center">Tidak ada data karyawan</td>
                                 </tr>
                                 @endforelse
                             </tbody>
+                            @if(count($rekapData) > 0)
+                            <tfoot class="thead-light">
+                                <tr>
+                                    <th colspan="5" class="text-right">TOTAL:</th>
+                                    <th class="text-center">{{ collect($rekapData)->sum('total_hari_kerja') }}</th>
+                                    <th class="text-center">{{ collect($rekapData)->sum('jumlah_hadir') }}</th>
+                                    <th class="text-center">{{ collect($rekapData)->sum('jumlah_terlambat') }}</th>
+                                    <th class="text-center">{{ collect($rekapData)->sum('jumlah_izin') }}</th>
+                                    <th class="text-center">{{ collect($rekapData)->sum('jumlah_sakit') }}</th>
+                                    <th class="text-center">{{ collect($rekapData)->sum('jumlah_cuti') }}</th>
+                                    <th class="text-center">{{ collect($rekapData)->sum('jumlah_alpha') }}</th>
+                                    <th class="text-center">-</th>
+                                    <th class="text-center">{{ round(collect($rekapData)->sum('total_jam_kerja'), 2) }} jam</th>
+                                </tr>
+                            </tfoot>
+                            @endif
                         </table>
                     </div>
                 </div>
             </div>
+            @else
+            <div class="card mt-4">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Silakan pilih filter dan klik "Tampilkan Rekap"</h5>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 </div>
+
 @endsection
 
-@push('styles')
-<style>
-    .opacity-50 {
-        opacity: 0.5;
-    }
-</style>
+@push('scripts')
+<script>
+$(document).ready(function() {
+    // Toggle periode input based on tipe rekap
+    $('#tipeRekap').on('change', function() {
+        const tipe = $(this).val();
+        if (tipe === 'bulanan') {
+            $('#periodeBulanan').show().prop('required', true);
+            $('#periodeMingguan').hide().prop('required', false);
+        } else {
+            $('#periodeBulanan').hide().prop('required', false);
+            $('#periodeMingguan').show().prop('required', true);
+        }
+    });
+    
+    // Filter departemen by fakultas
+    $('#fakultasSelect').on('change', function() {
+        const idFakultas = $(this).val();
+        const $departemenSelect = $('#departemenSelect');
+        
+        if (idFakultas) {
+            $departemenSelect.find('option').each(function() {
+                const $option = $(this);
+                if ($option.val() === '') {
+                    $option.show();
+                } else if ($option.data('fakultas') == idFakultas) {
+                    $option.show();
+                } else {
+                    $option.hide();
+                }
+            });
+            $departemenSelect.val('');
+        } else {
+            $departemenSelect.find('option').show();
+        }
+    });
+    
+    // Trigger on page load
+    $('#fakultasSelect').trigger('change');
+    
+    // Download PDF
+    $('#downloadPdfBtn').on('click', function() {
+        const formData = $('#filterForm').serialize();
+        window.open('{{ route("admin.presensi.download-pdf") }}?' + formData, '_blank');
+    });
+});
+</script>
 @endpush
