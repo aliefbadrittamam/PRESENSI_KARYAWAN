@@ -11,7 +11,8 @@ use App\Models\Presensi;
 use App\Models\ShiftKerja;
 use App\Models\LokasiPresensi;
 use Carbon\Carbon;
-use Intervention\Image\Facades\Image;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver; // atau Imagick\Driver
 
 class KaryawanPresensiController extends Controller
 {
@@ -26,9 +27,7 @@ class KaryawanPresensiController extends Controller
         $shift = ShiftKerja::where('status_aktif', 1)->first();
 
         $today = Carbon::today();
-        $presensiHariIni = Presensi::where('id_karyawan', $karyawan->id_karyawan)
-            ->whereDate('tanggal_presensi', $today)
-            ->first();
+        $presensiHariIni = Presensi::where('id_karyawan', $karyawan->id_karyawan)->whereDate('tanggal_presensi', $today)->first();
 
         return view('user.presensi.index', compact('karyawan', 'shift', 'presensiHariIni'));
     }
@@ -38,15 +37,22 @@ class KaryawanPresensiController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-            'accuracy' => 'required|numeric',
-            'alamat' => 'required|string',
-            'foto' => 'required|string',
-            'tipe_absen' => 'required|in:masuk,keluar',
-            'catatan' => 'nullable|string|max:500',
-        ]);
+        $request->validate(
+            [
+                'latitude' => 'required|numeric|between:-90,90',
+                'longitude' => 'required|numeric|between:-180,180',
+                // 'accuracy' => 'required|numeric|min:0|max:1000', // Maksimal 1000 meter
+                'alamat' => 'required|string|max:500',
+                'foto' => 'required|string',
+                'tipe_absen' => 'required|in:masuk,keluar',
+                'catatan' => 'nullable|string|max:500',
+            ],
+            [
+                // 'accuracy.max' => 'Akurasi GPS terlalu rendah. Pastikan Anda berada di area terbuka.',
+                'latitude.between' => 'Koordinat latitude tidak valid.',
+                'longitude.between' => 'Koordinat longitude tidak valid.',
+            ],
+        );
 
         $user = Auth::user();
         $karyawan = Karyawan::where('user_id', $user->id)->firstOrFail();
@@ -62,20 +68,19 @@ class KaryawanPresensiController extends Controller
                 'id_shift' => $this->getActiveShift()?->id_shift,
                 'status_kehadiran' => 'alpha',
                 'status_verifikasi' => 'pending',
-            ]
+            ],
         );
 
-        $isInRadius = $this->checkLocationRadius(
-            $request->latitude,
-            $request->longitude,
-            $karyawan->id_fakultas
-        );
+        $isInRadius = $this->checkLocationRadius($request->latitude, $request->longitude, $karyawan->id_fakultas);
 
         if (!$isInRadius) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Anda berada di luar radius kantor. Presensi tidak dapat dilakukan.'
-            ], 422);
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'Anda berada di luar radius kantor. Presensi tidak dapat dilakukan.',
+                ],
+                422,
+            );
         }
 
         if ($request->tipe_absen === 'masuk') {
@@ -91,10 +96,13 @@ class KaryawanPresensiController extends Controller
     private function storeAbsenMasuk($presensi, $request, $karyawan)
     {
         if ($presensi->jam_masuk) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Anda sudah melakukan absen masuk hari ini.'
-            ], 422);
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'Anda sudah melakukan absen masuk hari ini.',
+                ],
+                422,
+            );
         }
 
         $now = Carbon::now();
@@ -106,11 +114,27 @@ class KaryawanPresensiController extends Controller
         if ($shift) {
             $jamMulai = Carbon::parse($shift->jam_mulai);
             $toleransi = $shift->toleransi_keterlambatan ?? 15;
+            $batasWaktu = $jamMulai->copy()->addMinutes($toleransi);
 
-            if ($now->greaterThan($jamMulai->addMinutes($toleransi))) {
+            // Fix: Hitung keterlambatan dengan benar
+            if ($now->greaterThan($batasWaktu)) {
                 $keterlambatan = $now->diffInMinutes($jamMulai);
                 $statusKehadiran = 'terlambat';
             }
+        }
+
+        // Validasi dan sanitasi accuracy
+        $accuracy = floatval($request->accuracy);
+
+        // Jika accuracy terlalu besar (>1000m atau 1km), set ke nilai maksimum
+        if ($accuracy > 1000) {
+            $accuracy = 1000;
+            \Log::warning("GPS accuracy too large: {$request->accuracy}m, capped to 1000m");
+        }
+
+        // Jika accuracy negatif, set ke 0
+        if ($accuracy < 0) {
+            $accuracy = 0;
         }
 
         $fotoPath = $this->savePhoto($request->foto, 'masuk', $karyawan->id_karyawan);
@@ -120,20 +144,18 @@ class KaryawanPresensiController extends Controller
             'latitude_masuk' => $request->latitude,
             'longitude_masuk' => $request->longitude,
             'alamat_masuk' => $request->alamat,
-            'accuracy_masuk' => $request->accuracy,
+            'accuracy_masuk' => $accuracy, // Gunakan nilai yang sudah divalidasi
             'foto_masuk' => $fotoPath,
             'status_kehadiran' => $statusKehadiran,
-            'keterlambatan_menit' => $keterlambatan,
+            'keterlambatan_menit' => max(0, $keterlambatan), // Pastikan tidak negatif
             'catatan' => $request->catatan,
             'status_verifikasi' => 'verified',
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => $statusKehadiran === 'terlambat' 
-                ? "Absen masuk berhasil. Anda terlambat {$keterlambatan} menit."
-                : 'Absen masuk berhasil!',
-            'data' => $presensi
+            'message' => $statusKehadiran === 'terlambat' ? "Absen masuk berhasil. Anda terlambat {$keterlambatan} menit." : 'Absen masuk berhasil!',
+            'data' => $presensi,
         ]);
     }
 
@@ -143,23 +165,39 @@ class KaryawanPresensiController extends Controller
     private function storeAbsenKeluar($presensi, $request, $karyawan)
     {
         if (!$presensi->jam_masuk) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Anda belum melakukan absen masuk.'
-            ], 422);
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'Anda belum melakukan absen masuk.',
+                ],
+                422,
+            );
         }
 
         if ($presensi->jam_keluar) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Anda sudah melakukan absen keluar hari ini.'
-            ], 422);
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'Anda sudah melakukan absen keluar hari ini.',
+                ],
+                422,
+            );
         }
 
         $now = Carbon::now();
 
         $jamMasuk = Carbon::parse($presensi->jam_masuk);
         $totalJamKerja = $jamMasuk->diffInHours($now, true);
+
+        // Validasi dan sanitasi accuracy
+        $accuracy = floatval($request->accuracy);
+        if ($accuracy > 1000) {
+            $accuracy = 1000;
+            \Log::warning("GPS accuracy too large: {$request->accuracy}m, capped to 1000m");
+        }
+        if ($accuracy < 0) {
+            $accuracy = 0;
+        }
 
         $fotoPath = $this->savePhoto($request->foto, 'keluar', $karyawan->id_karyawan);
 
@@ -168,16 +206,16 @@ class KaryawanPresensiController extends Controller
             'latitude_keluar' => $request->latitude,
             'longitude_keluar' => $request->longitude,
             'alamat_keluar' => $request->alamat,
-            'accuracy_keluar' => $request->accuracy,
+            'accuracy_keluar' => $accuracy, // Gunakan nilai yang sudah divalidasi
             'foto_keluar' => $fotoPath,
-            'total_jam_kerja' => $totalJamKerja,
+            'total_jam_kerja' => round($totalJamKerja, 2),
             'catatan' => $presensi->catatan . ($request->catatan ? ' | ' . $request->catatan : ''),
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => "Absen keluar berhasil! Total jam kerja: " . number_format($totalJamKerja, 1) . " jam",
-            'data' => $presensi
+            'message' => 'Absen keluar berhasil! Total jam kerja: ' . number_format($totalJamKerja, 1) . ' jam',
+            'data' => $presensi,
         ]);
     }
 
@@ -199,31 +237,71 @@ class KaryawanPresensiController extends Controller
     /**
      * Save photo from base64
      */
+    /**
+     * Save photo from base64
+     */
+    /**
+     * Save photo from base64
+     * Struktur folder: storage/app/public/FotoPresensi/NIP_Karyawan/YYYY-MM/
+     */
+    /**
+     * Save photo from base64
+     * Struktur folder: FotoPresensi/YYYY-MM/Masuk atau Keluar/TGL_WAKTU_NAMA(NIP).jpg
+     * Contoh: FotoPresensi/2025-11/Masuk/02-11-2025_134308_John_Doe(123456).jpg
+     */
     private function savePhoto($base64Image, $tipe, $idKaryawan)
     {
-        $image = str_replace('data:image/jpeg;base64,', '', $base64Image);
+        // Ambil data karyawan untuk mendapatkan nama dan NIP
+        $karyawan = Karyawan::find($idKaryawan);
+        $namaKaryawan = $karyawan ? $karyawan->nama_lengkap : 'Unknown';
+        $nip = $karyawan ? $karyawan->nip : $idKaryawan;
+
+        // Bersihkan nama (hapus spasi dan karakter special, ganti dengan underscore)
+        $namaClean = str_replace(' ', '_', $namaKaryawan);
+        $namaClean = preg_replace('/[^A-Za-z0-9_]/', '', $namaClean);
+
+        // Hapus prefix base64 dan decode data
+        $image = preg_replace('/^data:image\/\w+;base64,/', '', $base64Image);
         $image = str_replace(' ', '+', $image);
         $imageData = base64_decode($image);
 
-        $filename = $tipe . '_' . $idKaryawan . '_' . time() . '.jpg';
-        $path = 'foto-presensi/' . date('Y/m');
+        // Buat struktur folder: FotoPresensi/YYYY-MM/Masuk atau Keluar
+        $yearMonth = date('Y-m'); // Format: 2025-11
+        $tipeFolderName = ucfirst(strtolower($tipe)); // "Masuk" atau "Keluar"
+        $folderPath = "FotoPresensi/{$yearMonth}/{$tipeFolderName}";
 
-        Storage::makeDirectory('public/' . $path);
+        // Buat nama file: TGL_WAKTU_NAMA(NIP).jpg
+        // Format: 02-11-2025_134308_John_Doe(123456).jpg
+        $tanggal = date('d-m-Y'); // 02-11-2025
+        $waktu = date('His'); // 134308
+        $filename = "{$tanggal}_{$waktu}_{$namaClean}({$nip}).jpg";
 
-        $fullPath = $path . '/' . $filename;
-        Storage::put('public/' . $fullPath, $imageData);
+        // Path lengkap file
+        $fullPath = "{$folderPath}/{$filename}";
+
+        // Pastikan direktori ada
+        Storage::disk('public')->makeDirectory($folderPath);
+
+        // Simpan file utama
+        Storage::disk('public')->put($fullPath, $imageData);
 
         try {
-            $thumbnailPath = $path . '/thumb_' . $filename;
-            $img = Image::make(storage_path('app/public/' . $fullPath));
-            $img->resize(300, null, function ($constraint) {
-                $constraint->aspectRatio();
-            });
-            $img->save(storage_path('app/public/' . $thumbnailPath));
+            // Buat thumbnail (versi lebih kecil) - simpan di folder yang sama
+            $thumbnailFilename = "thumb_{$filename}";
+            $thumbnailPath = "{$folderPath}/{$thumbnailFilename}";
+
+            $manager = new ImageManager(new Driver());
+            $img = $manager->read(storage_path("app/public/{$fullPath}"));
+            $img->scale(width: 300);
+            $img->save(storage_path("app/public/{$thumbnailPath}"));
+
+            \Log::info("Photo saved successfully: {$fullPath}");
+            \Log::info("Thumbnail created successfully: {$thumbnailPath}");
         } catch (\Exception $e) {
             \Log::error('Thumbnail creation failed: ' . $e->getMessage());
         }
 
+        // Return path relatif (untuk disimpan di database)
         return $fullPath;
     }
 
@@ -232,9 +310,7 @@ class KaryawanPresensiController extends Controller
      */
     private function checkLocationRadius($latitude, $longitude, $idFakultas)
     {
-        $lokasi = LokasiPresensi::where('id_fakultas', $idFakultas)
-            ->where('status_aktif', 1)
-            ->first();
+        $lokasi = LokasiPresensi::where('id_fakultas', $idFakultas)->where('status_aktif', 1)->first();
 
         if (!$lokasi) {
             return true;
@@ -250,10 +326,8 @@ class KaryawanPresensiController extends Controller
         $dlat = $lat2 - $lat1;
         $dlon = $lon2 - $lon1;
 
-        $a = sin($dlat / 2) * sin($dlat / 2) +
-            cos($lat1) * cos($lat2) *
-            sin($dlon / 2) * sin($dlon / 2);
-        
+        $a = sin($dlat / 2) * sin($dlat / 2) + cos($lat1) * cos($lat2) * sin($dlon / 2) * sin($dlon / 2);
+
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
         $distance = $earthRadius * $c;
 
@@ -277,13 +351,9 @@ class KaryawanPresensiController extends Controller
         $karyawan = Karyawan::where('user_id', $user->id)->firstOrFail();
 
         $bulan = $request->input('bulan', Carbon::now()->format('Y-m'));
-        list($tahun, $bulan_num) = explode('-', $bulan);
+        [$tahun, $bulan_num] = explode('-', $bulan);
 
-        $presensi = Presensi::where('id_karyawan', $karyawan->id_karyawan)
-            ->whereYear('tanggal_presensi', $tahun)
-            ->whereMonth('tanggal_presensi', $bulan_num)
-            ->orderBy('tanggal_presensi', 'desc')
-            ->paginate(20);
+        $presensi = Presensi::where('id_karyawan', $karyawan->id_karyawan)->whereYear('tanggal_presensi', $tahun)->whereMonth('tanggal_presensi', $bulan_num)->orderBy('tanggal_presensi', 'desc')->paginate(20);
 
         $months = $this->generateMonthOptions($bulan);
 
@@ -298,10 +368,7 @@ class KaryawanPresensiController extends Controller
         $user = Auth::user();
         $karyawan = Karyawan::where('user_id', $user->id)->firstOrFail();
 
-        $presensi = Presensi::where('id_karyawan', $karyawan->id_karyawan)
-            ->where('id_presensi', $id)
-            ->with('shift')
-            ->firstOrFail();
+        $presensi = Presensi::where('id_karyawan', $karyawan->id_karyawan)->where('id_presensi', $id)->with('shift')->firstOrFail();
 
         return view('user.presensi.show', compact('karyawan', 'presensi'));
     }
@@ -315,14 +382,10 @@ class KaryawanPresensiController extends Controller
         $karyawan = Karyawan::where('user_id', $user->id)->firstOrFail();
 
         $bulan = $request->input('bulan', Carbon::now()->format('Y-m'));
-        list($tahun, $bulan_num) = explode('-', $bulan);
+        [$tahun, $bulan_num] = explode('-', $bulan);
 
         // Get presensi data
-        $presensiList = Presensi::where('id_karyawan', $karyawan->id_karyawan)
-            ->whereYear('tanggal_presensi', $tahun)
-            ->whereMonth('tanggal_presensi', $bulan_num)
-            ->orderBy('tanggal_presensi', 'desc')
-            ->get();
+        $presensiList = Presensi::where('id_karyawan', $karyawan->id_karyawan)->whereYear('tanggal_presensi', $tahun)->whereMonth('tanggal_presensi', $bulan_num)->orderBy('tanggal_presensi', 'desc')->get();
 
         // Calculate statistics
         $startDate = Carbon::createFromDate($tahun, $bulan_num, 1)->startOfMonth();
@@ -348,9 +411,7 @@ class KaryawanPresensiController extends Controller
         $totalMenitTerlambat = $presensiList->sum('keterlambatan_menit');
         $totalJamKerja = $presensiList->sum('total_jam_kerja');
 
-        $persentaseKehadiran = $totalHariKerja > 0 
-            ? (($jumlahHadir + $jumlahTerlambat) / $totalHariKerja) * 100 
-            : 0;
+        $persentaseKehadiran = $totalHariKerja > 0 ? (($jumlahHadir + $jumlahTerlambat) / $totalHariKerja) * 100 : 0;
 
         $rekap = [
             'total_hari_kerja' => $totalHariKerja,
@@ -378,20 +439,29 @@ class KaryawanPresensiController extends Controller
     {
         $months = [];
         $monthNames = [
-            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
-            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
-            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+            1 => 'Januari',
+            2 => 'Februari',
+            3 => 'Maret',
+            4 => 'April',
+            5 => 'Mei',
+            6 => 'Juni',
+            7 => 'Juli',
+            8 => 'Agustus',
+            9 => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember',
         ];
 
         for ($i = 0; $i < 6; $i++) {
             $date = Carbon::now()->subMonths($i);
             $value = $date->format('Y-m');
             $label = $monthNames[$date->month] . ' ' . $date->year;
-            
+
             $months[] = [
                 'value' => $value,
                 'label' => $label,
-                'selected' => $value === $selectedMonth
+                'selected' => $value === $selectedMonth,
             ];
         }
 
