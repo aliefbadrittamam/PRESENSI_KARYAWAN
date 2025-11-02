@@ -51,7 +51,6 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 |--------------------------------------------------------------------------
 | NON-REGISTERED AUTH ROUTES
 |--------------------------------------------------------------------------
-| Menonaktifkan register dan reset password dari Laravel default
 */
 Auth::routes(['register' => false, 'reset' => false]);
 
@@ -59,51 +58,30 @@ Auth::routes(['register' => false, 'reset' => false]);
 |--------------------------------------------------------------------------
 | PROTECTED ROUTES - USER/KARYAWAN
 |--------------------------------------------------------------------------
-| Routes untuk karyawan yang sudah login
 */
 Route::middleware(['auth'])->group(function () {
 
-    /*
-    |----------------------------------------------------------------------
-    | DASHBOARD KARYAWAN
-    |----------------------------------------------------------------------
-    */
-    Route::get('/dashboard', [KaryawanDashboardController::class, 'index'])
-        ->name('karyawan.dashboard');
-    
-    Route::get('/user/dashboard', [KaryawanDashboardController::class, 'index'])
-        ->name('user.dashboard');
-    
-    Route::get('/profile', [KaryawanDashboardController::class, 'profile'])
-        ->name('karyawan.profile');
+    // DASHBOARD KARYAWAN
+    Route::get('/dashboard', [KaryawanDashboardController::class, 'index'])->name('karyawan.dashboard');
+    Route::get('/user/dashboard', [KaryawanDashboardController::class, 'index'])->name('user.dashboard');
+    Route::get('/profile', [KaryawanDashboardController::class, 'profile'])->name('karyawan.profile');
 
-    /*
-    |----------------------------------------------------------------------
-    | PRESENSI - USER
-    |----------------------------------------------------------------------
-    */
+    // PRESENSI - USER (KaryawanPresensiController)
     Route::prefix('user/presensi')->name('presensi.')->group(function () {
-        // Halaman presensi (camera + GPS)
-        Route::get('/', [PresensiController::class, 'index'])->name('index');
-        Route::get('/create', [PresensiController::class, 'index'])->name('create');
+        Route::get('/', [KaryawanPresensiController::class, 'index'])->name('index');
+        Route::get('/create', [KaryawanPresensiController::class, 'index'])->name('create');
         
-        // Store presensi (unified endpoint)
-        Route::post('/store', [PresensiController::class, 'store'])->name('store');
+        Route::post('/store', [KaryawanPresensiController::class, 'store'])->name('store');
+        Route::post('/masuk', [KaryawanPresensiController::class, 'storeMasuk'])->name('masuk');
+        Route::post('/keluar', [KaryawanPresensiController::class, 'storeKeluar'])->name('keluar');
         
-        // Alternative endpoints (backward compatibility)
-        Route::post('/masuk', [PresensiController::class, 'storeMasuk'])->name('masuk');
-        Route::post('/keluar', [PresensiController::class, 'storeKeluar'])->name('keluar');
+        Route::get('/history', [KaryawanPresensiController::class, 'history'])->name('history');
+        Route::get('/rekap', [KaryawanPresensiController::class, 'rekap'])->name('rekap');
         
-        // History & detail
-        Route::get('/history', [PresensiController::class, 'history'])->name('history');
-        Route::get('/{id}', [PresensiController::class, 'show'])->name('show');
+        Route::get('/{id}', [KaryawanPresensiController::class, 'show'])->name('show');
     });
 
-    /*
-    |----------------------------------------------------------------------
-    | IZIN
-    |----------------------------------------------------------------------
-    */
+    // IZIN
     Route::prefix('izin')->name('izin.')->group(function () {
         Route::get('/', [IzinController::class, 'index'])->name('index');
         Route::get('/create', [IzinController::class, 'create'])->name('create');
@@ -111,11 +89,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{id}', [IzinController::class, 'show'])->name('show');
     });
 
-    /*
-    |----------------------------------------------------------------------
-    | CUTI
-    |----------------------------------------------------------------------
-    */
+    // CUTI
     Route::prefix('cuti')->name('cuti.')->group(function () {
         Route::get('/', [CutiController::class, 'index'])->name('index');
         Route::get('/create', [CutiController::class, 'create'])->name('create');
@@ -128,52 +102,25 @@ Route::middleware(['auth'])->group(function () {
 |--------------------------------------------------------------------------
 | PROTECTED ROUTES - ADMIN
 |--------------------------------------------------------------------------
-| Routes untuk admin/HR yang sudah login
 */
 Route::middleware(['auth'])->group(function () {
 
-    /*
-    |----------------------------------------------------------------------
-    | HOME/DASHBOARD ADMIN
-    |----------------------------------------------------------------------
-    */
+    // DASHBOARD ADMIN
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 
-    /*
-    |----------------------------------------------------------------------
-    | MASTER DATA
-    |----------------------------------------------------------------------
-    */
-    Route::resource('fakultas', FakultasController::class)
-        ->parameters(['fakultas' => 'fakultas']);
-    
+    // MASTER DATA
+    Route::resource('fakultas', FakultasController::class)->parameters(['fakultas' => 'fakultas']);
     Route::resource('departemen', DepartemenController::class);
-    
     Route::resource('jabatan', JabatanController::class);
-    
     Route::resource('karyawan', KaryawanController::class);
-    
     Route::resource('shift', ShiftController::class);
-    
     Route::resource('lokasi', LokasiPresensiController::class);
 
-    /*
-    |----------------------------------------------------------------------
-    | PRESENSI - ADMIN
-    |----------------------------------------------------------------------
-    */
-    Route::prefix('presensi')->group(function () {
-        // Admin presensi management
-        Route::get('/rekap', [KaryawanPresensiController::class, 'rekap'])->name('presensi.rekap');
-        
-        // Legacy routes (if still needed)
-        Route::get('/masuk', [KaryawanPresensiController::class, 'createMasuk'])->name('presensi.createMasuk');
-        Route::get('/keluar', [KaryawanPresensiController::class, 'createKeluar'])->name('presensi.createKeluar');
-        Route::post('/masuk', [KaryawanPresensiController::class, 'storeMasuk'])->name('presensi.storeMasuk');
-        Route::post('/keluar', [KaryawanPresensiController::class, 'storeKeluar'])->name('presensi.storeKeluar');
+    // PRESENSI - ADMIN (PresensiController)
+    Route::prefix('presensi')->name('admin.presensi.')->group(function () {
+        Route::get('/', [PresensiController::class, 'index'])->name('index');
+        Route::get('/rekap', [PresensiController::class, 'rekap'])->name('rekap');
+        Route::get('/rekap/download-pdf', [PresensiController::class, 'downloadPdf'])->name('download-pdf');
+        Route::get('/{id}', [PresensiController::class, 'show'])->name('show');
     });
-    
-    // Resource route untuk CRUD admin presensi
-    Route::resource('presensi', KaryawanPresensiController::class)
-        ->except(['create', 'store']); // exclude karena sudah ada custom routes
 });

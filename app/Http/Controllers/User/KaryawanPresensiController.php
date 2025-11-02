@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\User;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -10,8 +11,7 @@ use App\Models\Presensi;
 use App\Models\ShiftKerja;
 use App\Models\LokasiPresensi;
 use Carbon\Carbon;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Facades\Image;
 
 class KaryawanPresensiController extends Controller
 {
@@ -23,12 +23,12 @@ class KaryawanPresensiController extends Controller
         $user = Auth::user();
         $karyawan = Karyawan::where('user_id', $user->id)->firstOrFail();
 
-        // Get shift kerja
         $shift = ShiftKerja::where('status_aktif', 1)->first();
 
-        // Get presensi hari ini
         $today = Carbon::today();
-        $presensiHariIni = Presensi::where('id_karyawan', $karyawan->id_karyawan)->whereDate('tanggal_presensi', $today)->first();
+        $presensiHariIni = Presensi::where('id_karyawan', $karyawan->id_karyawan)
+            ->whereDate('tanggal_presensi', $today)
+            ->first();
 
         return view('user.presensi.index', compact('karyawan', 'shift', 'presensiHariIni'));
     }
@@ -52,9 +52,7 @@ class KaryawanPresensiController extends Controller
         $karyawan = Karyawan::where('user_id', $user->id)->firstOrFail();
 
         $today = Carbon::today();
-        $now = Carbon::now();
 
-        // Get or create presensi record
         $presensi = Presensi::firstOrCreate(
             [
                 'id_karyawan' => $karyawan->id_karyawan,
@@ -64,23 +62,22 @@ class KaryawanPresensiController extends Controller
                 'id_shift' => $this->getActiveShift()?->id_shift,
                 'status_kehadiran' => 'alpha',
                 'status_verifikasi' => 'pending',
-            ],
+            ]
         );
 
-        // Check location radius
-        $isInRadius = $this->checkLocationRadius($request->latitude, $request->longitude, $karyawan->id_fakultas);
+        $isInRadius = $this->checkLocationRadius(
+            $request->latitude,
+            $request->longitude,
+            $karyawan->id_fakultas
+        );
 
         if (!$isInRadius) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'message' => 'Anda berada di luar radius kantor. Presensi tidak dapat dilakukan.',
-                ],
-                422,
-            );
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda berada di luar radius kantor. Presensi tidak dapat dilakukan.'
+            ], 422);
         }
 
-        // Process based on tipe absen
         if ($request->tipe_absen === 'masuk') {
             return $this->storeAbsenMasuk($presensi, $request, $karyawan);
         } else {
@@ -93,21 +90,16 @@ class KaryawanPresensiController extends Controller
      */
     private function storeAbsenMasuk($presensi, $request, $karyawan)
     {
-        // Check if already checked in
         if ($presensi->jam_masuk) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'message' => 'Anda sudah melakukan absen masuk hari ini.',
-                ],
-                422,
-            );
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda sudah melakukan absen masuk hari ini.'
+            ], 422);
         }
 
         $now = Carbon::now();
         $shift = $this->getActiveShift();
 
-        // Calculate keterlambatan
         $keterlambatan = 0;
         $statusKehadiran = 'hadir';
 
@@ -121,10 +113,8 @@ class KaryawanPresensiController extends Controller
             }
         }
 
-        // Save photo
         $fotoPath = $this->savePhoto($request->foto, 'masuk', $karyawan->id_karyawan);
 
-        // Update presensi
         $presensi->update([
             'jam_masuk' => $now->format('H:i:s'),
             'latitude_masuk' => $request->latitude,
@@ -140,8 +130,10 @@ class KaryawanPresensiController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => $statusKehadiran === 'terlambat' ? "Absen masuk berhasil. Anda terlambat {$keterlambatan} menit." : 'Absen masuk berhasil!',
-            'data' => $presensi,
+            'message' => $statusKehadiran === 'terlambat' 
+                ? "Absen masuk berhasil. Anda terlambat {$keterlambatan} menit."
+                : 'Absen masuk berhasil!',
+            'data' => $presensi
         ]);
     }
 
@@ -150,38 +142,27 @@ class KaryawanPresensiController extends Controller
      */
     private function storeAbsenKeluar($presensi, $request, $karyawan)
     {
-        // Check if not checked in yet
         if (!$presensi->jam_masuk) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'message' => 'Anda belum melakukan absen masuk.',
-                ],
-                422,
-            );
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda belum melakukan absen masuk.'
+            ], 422);
         }
 
-        // Check if already checked out
         if ($presensi->jam_keluar) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'message' => 'Anda sudah melakukan absen keluar hari ini.',
-                ],
-                422,
-            );
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda sudah melakukan absen keluar hari ini.'
+            ], 422);
         }
 
         $now = Carbon::now();
 
-        // Calculate total jam kerja
         $jamMasuk = Carbon::parse($presensi->jam_masuk);
         $totalJamKerja = $jamMasuk->diffInHours($now, true);
 
-        // Save photo
         $fotoPath = $this->savePhoto($request->foto, 'keluar', $karyawan->id_karyawan);
 
-        // Update presensi
         $presensi->update([
             'jam_keluar' => $now->format('H:i:s'),
             'latitude_keluar' => $request->latitude,
@@ -195,9 +176,24 @@ class KaryawanPresensiController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Absen keluar berhasil! Total jam kerja: ' . number_format($totalJamKerja, 1) . ' jam',
-            'data' => $presensi,
+            'message' => "Absen keluar berhasil! Total jam kerja: " . number_format($totalJamKerja, 1) . " jam",
+            'data' => $presensi
         ]);
+    }
+
+    /**
+     * Backward compatibility methods
+     */
+    public function storeMasuk(Request $request)
+    {
+        $request->merge(['tipe_absen' => 'masuk']);
+        return $this->store($request);
+    }
+
+    public function storeKeluar(Request $request)
+    {
+        $request->merge(['tipe_absen' => 'keluar']);
+        return $this->store($request);
     }
 
     /**
@@ -205,28 +201,26 @@ class KaryawanPresensiController extends Controller
      */
     private function savePhoto($base64Image, $tipe, $idKaryawan)
     {
-        // Remove data:image/...;base64, prefix
-        $image = preg_replace('#^data:image/\w+;base64,#i', '', $base64Image);
+        $image = str_replace('data:image/jpeg;base64,', '', $base64Image);
         $image = str_replace(' ', '+', $image);
         $imageData = base64_decode($image);
 
-        // Generate filename & path
         $filename = $tipe . '_' . $idKaryawan . '_' . time() . '.jpg';
         $path = 'foto-presensi/' . date('Y/m');
+
         Storage::makeDirectory('public/' . $path);
 
-        // Full path
         $fullPath = $path . '/' . $filename;
         Storage::put('public/' . $fullPath, $imageData);
 
-        // Buat thumbnail menggunakan Intervention Image v3
         try {
-            $manager = new ImageManager(new Driver());
-            $img = $manager->read(storage_path('app/public/' . $fullPath))->scale(width: 300); // resize lebar 300 px
-
             $thumbnailPath = $path . '/thumb_' . $filename;
+            $img = Image::make(storage_path('app/public/' . $fullPath));
+            $img->resize(300, null, function ($constraint) {
+                $constraint->aspectRatio();
+            });
             $img->save(storage_path('app/public/' . $thumbnailPath));
-        } catch (\Throwable $e) {
+        } catch (\Exception $e) {
             \Log::error('Thumbnail creation failed: ' . $e->getMessage());
         }
 
@@ -238,15 +232,15 @@ class KaryawanPresensiController extends Controller
      */
     private function checkLocationRadius($latitude, $longitude, $idFakultas)
     {
-        $lokasi = LokasiPresensi::where('id_fakultas', $idFakultas)->where('status_aktif', 1)->first();
+        $lokasi = LokasiPresensi::where('id_fakultas', $idFakultas)
+            ->where('status_aktif', 1)
+            ->first();
 
         if (!$lokasi) {
-            // If no location restriction, allow presensi
             return true;
         }
 
-        // Calculate distance using Haversine formula
-        $earthRadius = 6371000; // meters
+        $earthRadius = 6371000;
 
         $lat1 = deg2rad($lokasi->latitude);
         $lon1 = deg2rad($lokasi->longitude);
@@ -256,8 +250,10 @@ class KaryawanPresensiController extends Controller
         $dlat = $lat2 - $lat1;
         $dlon = $lon2 - $lon1;
 
-        $a = sin($dlat / 2) * sin($dlat / 2) + cos($lat1) * cos($lat2) * sin($dlon / 2) * sin($dlon / 2);
-
+        $a = sin($dlat / 2) * sin($dlat / 2) +
+            cos($lat1) * cos($lat2) *
+            sin($dlon / 2) * sin($dlon / 2);
+        
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
         $distance = $earthRadius * $c;
 
@@ -281,11 +277,14 @@ class KaryawanPresensiController extends Controller
         $karyawan = Karyawan::where('user_id', $user->id)->firstOrFail();
 
         $bulan = $request->input('bulan', Carbon::now()->format('Y-m'));
-        [$tahun, $bulan_num] = explode('-', $bulan);
+        list($tahun, $bulan_num) = explode('-', $bulan);
 
-        $presensi = Presensi::where('id_karyawan', $karyawan->id_karyawan)->whereYear('tanggal_presensi', $tahun)->whereMonth('tanggal_presensi', $bulan_num)->orderBy('tanggal_presensi', 'desc')->paginate(20);
+        $presensi = Presensi::where('id_karyawan', $karyawan->id_karyawan)
+            ->whereYear('tanggal_presensi', $tahun)
+            ->whereMonth('tanggal_presensi', $bulan_num)
+            ->orderBy('tanggal_presensi', 'desc')
+            ->paginate(20);
 
-        // Generate months for filter
         $months = $this->generateMonthOptions($bulan);
 
         return view('user.presensi.history', compact('karyawan', 'presensi', 'months', 'bulan'));
@@ -299,9 +298,77 @@ class KaryawanPresensiController extends Controller
         $user = Auth::user();
         $karyawan = Karyawan::where('user_id', $user->id)->firstOrFail();
 
-        $presensi = Presensi::where('id_karyawan', $karyawan->id_karyawan)->where('id_presensi', $id)->with('shift')->firstOrFail();
+        $presensi = Presensi::where('id_karyawan', $karyawan->id_karyawan)
+            ->where('id_presensi', $id)
+            ->with('shift')
+            ->firstOrFail();
 
         return view('user.presensi.show', compact('karyawan', 'presensi'));
+    }
+
+    /**
+     * Show rekap presensi user
+     */
+    public function rekap(Request $request)
+    {
+        $user = Auth::user();
+        $karyawan = Karyawan::where('user_id', $user->id)->firstOrFail();
+
+        $bulan = $request->input('bulan', Carbon::now()->format('Y-m'));
+        list($tahun, $bulan_num) = explode('-', $bulan);
+
+        // Get presensi data
+        $presensiList = Presensi::where('id_karyawan', $karyawan->id_karyawan)
+            ->whereYear('tanggal_presensi', $tahun)
+            ->whereMonth('tanggal_presensi', $bulan_num)
+            ->orderBy('tanggal_presensi', 'desc')
+            ->get();
+
+        // Calculate statistics
+        $startDate = Carbon::createFromDate($tahun, $bulan_num, 1)->startOfMonth();
+        $endDate = Carbon::createFromDate($tahun, $bulan_num, 1)->endOfMonth();
+
+        // Count working days (exclude weekends)
+        $totalHariKerja = 0;
+        $currentDate = $startDate->copy();
+        while ($currentDate <= $endDate) {
+            if (!$currentDate->isWeekend()) {
+                $totalHariKerja++;
+            }
+            $currentDate->addDay();
+        }
+
+        $jumlahHadir = $presensiList->where('status_kehadiran', 'hadir')->count();
+        $jumlahTerlambat = $presensiList->where('status_kehadiran', 'terlambat')->count();
+        $jumlahIzin = $presensiList->where('status_kehadiran', 'izin')->count();
+        $jumlahSakit = $presensiList->where('status_kehadiran', 'sakit')->count();
+        $jumlahCuti = $presensiList->where('status_kehadiran', 'cuti')->count();
+        $jumlahAlpha = $totalHariKerja - ($jumlahHadir + $jumlahTerlambat + $jumlahIzin + $jumlahSakit + $jumlahCuti);
+
+        $totalMenitTerlambat = $presensiList->sum('keterlambatan_menit');
+        $totalJamKerja = $presensiList->sum('total_jam_kerja');
+
+        $persentaseKehadiran = $totalHariKerja > 0 
+            ? (($jumlahHadir + $jumlahTerlambat) / $totalHariKerja) * 100 
+            : 0;
+
+        $rekap = [
+            'total_hari_kerja' => $totalHariKerja,
+            'jumlah_hadir' => $jumlahHadir,
+            'jumlah_terlambat' => $jumlahTerlambat,
+            'jumlah_izin' => $jumlahIzin,
+            'jumlah_sakit' => $jumlahSakit,
+            'jumlah_cuti' => $jumlahCuti,
+            'jumlah_alpha' => max(0, $jumlahAlpha),
+            'persentase_kehadiran' => round($persentaseKehadiran, 2),
+            'total_menit_terlambat' => $totalMenitTerlambat,
+            'rata_rata_terlambat' => $jumlahTerlambat > 0 ? round($totalMenitTerlambat / $jumlahTerlambat, 2) : 0,
+            'total_jam_kerja' => round($totalJamKerja, 2),
+        ];
+
+        $months = $this->generateMonthOptions($bulan);
+
+        return view('user.presensi.rekap', compact('karyawan', 'presensiList', 'rekap', 'months', 'bulan'));
     }
 
     /**
@@ -311,29 +378,20 @@ class KaryawanPresensiController extends Controller
     {
         $months = [];
         $monthNames = [
-            1 => 'Januari',
-            2 => 'Februari',
-            3 => 'Maret',
-            4 => 'April',
-            5 => 'Mei',
-            6 => 'Juni',
-            7 => 'Juli',
-            8 => 'Agustus',
-            9 => 'September',
-            10 => 'Oktober',
-            11 => 'November',
-            12 => 'Desember',
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
         ];
 
         for ($i = 0; $i < 6; $i++) {
             $date = Carbon::now()->subMonths($i);
             $value = $date->format('Y-m');
             $label = $monthNames[$date->month] . ' ' . $date->year;
-
+            
             $months[] = [
                 'value' => $value,
                 'label' => $label,
-                'selected' => $value === $selectedMonth,
+                'selected' => $value === $selectedMonth
             ];
         }
 
