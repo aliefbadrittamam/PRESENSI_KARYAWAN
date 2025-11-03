@@ -2,96 +2,174 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use App\Models\LokasiPresensi;
 use App\Models\Fakultas;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class LokasiPresensiController extends Controller
 {
+    /**
+     * Display a listing of lokasi presensi
+     */
     public function index()
     {
-        $lokasi = LokasiPresensi::with('fakultas')->get();
-        return view('lokasi.index', compact('lokasi'));
+        $lokasiList = LokasiPresensi::with('fakultas')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('admin.presensi.lokasi_presensi.index', compact('lokasiList'));
     }
 
+    /**
+     * Show the form for creating a new lokasi
+     */
     public function create()
     {
-        $fakultas = Fakultas::where('status_aktif', true)->get();
-        return view('lokasi.create', compact('fakultas'));
+        $fakultas = Fakultas::where('status_aktif', 1)->get();
+        return view('admin.presensi.lokasi_presensi.create', compact('fakultas'));
     }
 
+    /**
+     * Store a newly created lokasi
+     */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'nama_lokasi' => 'required|max:100',
+        $validated = $request->validate([
+            'nama_lokasi' => 'required|string|max:100',
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
-            'radius_meter' => 'required|integer|min:10|max:1000',
+            'radius_meter' => 'required|integer|min:10|max:10000',
             'jenis_lokasi' => 'required|in:kantor,gedung,laboratorium,lainnya',
             'id_fakultas' => 'nullable|exists:fakultas,id_fakultas',
+            'status_aktif' => 'required|boolean',
             'waktu_operasional_mulai' => 'nullable|date_format:H:i',
-            'waktu_operasional_selesai' => 'nullable|date_format:H:i|after:waktu_operasional_mulai',
-            'keterangan' => 'nullable',
-            'status_aktif' => 'boolean'
+            'waktu_operasional_selesai' => 'nullable|date_format:H:i',
+            'keterangan' => 'nullable|string|max:500',
         ]);
 
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
+        try {
+            LokasiPresensi::create($validated);
+
+            return redirect()
+                ->route('admin.lokasi-presensi.index')
+                ->with('success', 'Lokasi presensi berhasil ditambahkan!');
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal menambahkan lokasi: ' . $e->getMessage());
         }
-
-        LokasiPresensi::create($request->all());
-
-        return redirect()->route('lokasi.index')
-            ->with('success', 'Lokasi presensi berhasil ditambahkan.');
     }
 
-    public function show(LokasiPresensi $lokasi)
+    /**
+     * Display the specified lokasi
+     */
+    public function show($id)
     {
-        $lokasi->load('fakultas');
-        return view('lokasi.show', compact('lokasi'));
+        $lokasi = LokasiPresensi::with('fakultas')->findOrFail($id);
+        return view('admin.presensi.lokasi_presensi.show', compact('lokasi'));
     }
 
-    public function edit(LokasiPresensi $lokasi)
+    /**
+     * Show the form for editing the specified lokasi
+     */
+    public function edit($id)
     {
-        $fakultas = Fakultas::where('status_aktif', true)->get();
-        return view('lokasi.edit', compact('lokasi', 'fakultas'));
+        $lokasi = LokasiPresensi::findOrFail($id);
+        $fakultas = Fakultas::where('status_aktif', 1)->get();
+        
+        return view('admin.presensi.lokasi_presensi.edit', compact('lokasi', 'fakultas'));
     }
 
-    public function update(Request $request, LokasiPresensi $lokasi)
+    /**
+     * Update the specified lokasi
+     */
+    public function update(Request $request, $id)
     {
-        $validator = Validator::make($request->all(), [
-            'nama_lokasi' => 'required|max:100',
+        $lokasi = LokasiPresensi::findOrFail($id);
+
+        $validated = $request->validate([
+            'nama_lokasi' => 'required|string|max:100',
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
-            'radius_meter' => 'required|integer|min:10|max:1000',
+            'radius_meter' => 'required|integer|min:10|max:10000',
             'jenis_lokasi' => 'required|in:kantor,gedung,laboratorium,lainnya',
             'id_fakultas' => 'nullable|exists:fakultas,id_fakultas',
+            'status_aktif' => 'required|boolean',
             'waktu_operasional_mulai' => 'nullable|date_format:H:i',
-            'waktu_operasional_selesai' => 'nullable|date_format:H:i|after:waktu_operasional_mulai',
-            'keterangan' => 'nullable',
-            'status_aktif' => 'boolean'
+            'waktu_operasional_selesai' => 'nullable|date_format:H:i',
+            'keterangan' => 'nullable|string|max:500',
         ]);
 
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
+        try {
+            $lokasi->update($validated);
+
+            return redirect()
+                ->route('admin.lokasi-presensi.index')
+                ->with('success', 'Lokasi presensi berhasil diupdate!');
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate lokasi: ' . $e->getMessage());
         }
-
-        $lokasi->update($request->all());
-
-        return redirect()->route('lokasi.index')
-            ->with('success', 'Lokasi presensi berhasil diperbarui.');
     }
 
-    public function destroy(LokasiPresensi $lokasi)
+    /**
+     * Remove the specified lokasi
+     */
+    public function destroy($id)
     {
-        $lokasi->delete();
+        try {
+            $lokasi = LokasiPresensi::findOrFail($id);
+            
+            // Check if lokasi is being used
+            $presensiCount = DB::table('presensi')
+                ->where(function($query) use ($lokasi) {
+                    $query->where('latitude_masuk', $lokasi->latitude)
+                          ->where('longitude_masuk', $lokasi->longitude);
+                })
+                ->orWhere(function($query) use ($lokasi) {
+                    $query->where('latitude_keluar', $lokasi->latitude)
+                          ->where('longitude_keluar', $lokasi->longitude);
+                })
+                ->count();
 
-        return redirect()->route('lokasi.index')
-            ->with('success', 'Lokasi presensi berhasil dihapus.');
+            if ($presensiCount > 0) {
+                return redirect()
+                    ->back()
+                    ->with('error', 'Lokasi tidak dapat dihapus karena sudah digunakan dalam presensi!');
+            }
+
+            $lokasi->delete();
+
+            return redirect()
+                ->route('admin.lokasi-presensi.index')
+                ->with('success', 'Lokasi presensi berhasil dihapus!');
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', 'Gagal menghapus lokasi: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get current location coordinates (for AJAX)
+     */
+    public function getCoordinates(Request $request)
+    {
+        $address = $request->input('address');
+        
+        // Using Google Geocoding API or other service
+        // For now, return dummy data or implement actual geocoding
+        
+        return response()->json([
+            'success' => true,
+            'latitude' => -7.2575,
+            'longitude' => 112.7521,
+            'message' => 'Koordinat berhasil didapatkan'
+        ]);
     }
 }

@@ -492,18 +492,18 @@
                                 </p>
                             </a>
                             <ul class="nav nav-treeview">
-                                <li class="nav-item">
+                                {{-- <li class="nav-item">
                                     <a href="{{ route('presensi.index') }}"
                                         class="nav-link {{ Request::is('user/presensi') && !Request::is('user/presensi/*') ? 'active' : '' }}">
                                         <i class="nav-icon fas fa-camera text-primary"></i>
                                         <p>Absen Sekarang</p>
                                     </a>
-                                </li>
+                                </li> --}}
                                 <li class="nav-item">
-                                    <a href="{{ route('presensi.history') }}"
-                                        class="nav-link {{ Request::is('user/presensi/history') ? 'active' : '' }}">
-                                        <i class="nav-icon fas fa-history text-secondary"></i>
-                                        <p>Riwayat Presensi</p>
+                                    <a href="{{ route('admin.lokasi-presensi.index') }}"
+                                        class="nav-link {{ Request::is('admin/lokasi-presensi*') ? 'active' : '' }}">
+                                        <i class="nav-icon fas fa-map-marker-alt text-success"></i>
+                                        <p>Lokasi Presensi</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
@@ -534,13 +534,13 @@
                                         <p>Shift Kerja</p>
                                     </a>
                                 </li>
-                                <li class="nav-item">
+                                {{-- <li class="nav-item">
                                     <a href="{{ route('lokasi.index') }}"
                                         class="nav-link {{ Request::is('lokasi*') ? 'active' : '' }}">
                                         <i class="nav-icon fas fa-map-marker-alt"></i>
                                         <p>Lokasi Presensi</p>
                                     </a>
-                                </li>
+                                </li> --}}
                             </ul>
                         </li>
                     </ul>

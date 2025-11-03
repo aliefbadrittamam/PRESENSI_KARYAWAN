@@ -11,7 +11,7 @@ use App\Models\Departemen;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 
-// ADMIN PresensiController - untuk mengelola presensi semua karyawan
+
 class PresensiController extends Controller
 {
     /**

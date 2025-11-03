@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class LokasiPresensi extends Model
 {
@@ -11,7 +11,6 @@ class LokasiPresensi extends Model
 
     protected $table = 'lokasi_presensi';
     protected $primaryKey = 'id_lokasi';
-    public $timestamps = true;
 
     protected $fillable = [
         'nama_lokasi',
@@ -23,79 +22,85 @@ class LokasiPresensi extends Model
         'status_aktif',
         'waktu_operasional_mulai',
         'waktu_operasional_selesai',
-        'keterangan'
+        'keterangan',
     ];
 
     protected $casts = [
+        'status_aktif' => 'boolean',
         'latitude' => 'decimal:8',
         'longitude' => 'decimal:8',
-        'radius_meter' => 'integer',
-        'status_aktif' => 'boolean',
-        'waktu_operasional_mulai' => 'datetime:H:i',
-        'waktu_operasional_selesai' => 'datetime:H:i'
     ];
 
-    // Relasi ke Fakultas
+    /**
+     * Relationship dengan Fakultas
+     */
     public function fakultas()
     {
-        return $this->belongsTo(Fakultas::class, 'id_fakultas');
+        return $this->belongsTo(Fakultas::class, 'id_fakultas', 'id_fakultas');
     }
 
-    // Method untuk cek apakah koordinat dalam radius
-    public function isDalamRadius($latitude, $longitude)
+    /**
+     * Scope untuk lokasi aktif
+     */
+    public function scopeAktif($query)
     {
-        $earthRadius = 6371000; // Radius bumi dalam meter
+        return $query->where('status_aktif', 1);
+    }
 
-        $latFrom = deg2rad($this->latitude);
-        $lonFrom = deg2rad($this->longitude);
-        $latTo = deg2rad($latitude);
-        $lonTo = deg2rad($longitude);
+    /**
+     * Scope untuk lokasi berdasarkan fakultas
+     */
+    public function scopeByFakultas($query, $fakultasId)
+    {
+        return $query->where('id_fakultas', $fakultasId);
+    }
 
-        $latDelta = $latTo - $latFrom;
-        $lonDelta = $lonTo - $lonFrom;
+    /**
+     * Check if coordinates are within radius
+     */
+    public function isWithinRadius($lat, $lng)
+    {
+        $earthRadius = 6371000; // meters
 
-        $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) +
-            cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
+        $lat1 = deg2rad($this->latitude);
+        $lon1 = deg2rad($this->longitude);
+        $lat2 = deg2rad($lat);
+        $lon2 = deg2rad($lng);
 
-        $distance = $angle * $earthRadius;
+        $dlat = $lat2 - $lat1;
+        $dlon = $lon2 - $lon1;
+
+        $a = sin($dlat / 2) * sin($dlat / 2) +
+            cos($lat1) * cos($lat2) *
+            sin($dlon / 2) * sin($dlon / 2);
+        
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+        $distance = $earthRadius * $c;
 
         return $distance <= $this->radius_meter;
     }
 
-    // Method untuk cek apakah waktu dalam jam operasional
-    public function isDalamJamOperasional($waktu = null)
+    /**
+     * Get distance from coordinates
+     */
+    public function getDistanceFrom($lat, $lng)
     {
-        if (!$this->waktu_operasional_mulai || !$this->waktu_operasional_selesai) {
-            return true; // Jika tidak ada batasan waktu
-        }
+        $earthRadius = 6371000; // meters
 
-        $waktuCheck = $waktu ? \Carbon\Carbon::parse($waktu) : now();
-        $jamMulai = \Carbon\Carbon::parse($this->waktu_operasional_mulai);
-        $jamSelesai = \Carbon\Carbon::parse($this->waktu_operasional_selesai);
+        $lat1 = deg2rad($this->latitude);
+        $lon1 = deg2rad($this->longitude);
+        $lat2 = deg2rad($lat);
+        $lon2 = deg2rad($lng);
 
-        // Handle operasional yang melewati tengah malam
-        if ($jamSelesai < $jamMulai) {
-            return $waktuCheck >= $jamMulai || $waktuCheck <= $jamSelesai;
-        }
+        $dlat = $lat2 - $lat1;
+        $dlon = $lon2 - $lon1;
 
-        return $waktuCheck >= $jamMulai && $waktuCheck <= $jamSelesai;
-    }
-
-    // Scope untuk lokasi aktif
-    public function scopeAktif($query)
-    {
-        return $query->where('status_aktif', true);
-    }
-
-    // Accessor untuk jenis lokasi dengan icon
-    public function getJenisLokasiIconAttribute()
-    {
-        return match($this->jenis_lokasi) {
-            'kantor' => 'fa-building',
-            'gedung' => 'fa-university',
-            'laboratorium' => 'fa-flask',
-            'lainnya' => 'fa-map-marker-alt',
-            default => 'fa-location-dot'
-        };
+        $a = sin($dlat / 2) * sin($dlat / 2) +
+            cos($lat1) * cos($lat2) *
+            sin($dlon / 2) * sin($dlon / 2);
+        
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+        
+        return round($earthRadius * $c, 2); // Return in meters
     }
 }

@@ -171,7 +171,7 @@
                                     <th class="text-center">{{ collect($rekapData)->sum('jumlah_izin') }}</th>
                                     <th class="text-center">{{ collect($rekapData)->sum('jumlah_sakit') }}</th>
                                     <th class="text-center">{{ collect($rekapData)->sum('jumlah_cuti') }}</th>
-                                    <th class="text-center">{{ collect($rekapData)->sum('jumlah_alpha') }}</th>
+                                    <th claloakss="text-center">{{ collect($rekapData)->sum('jumlah_alpha') }}</th>
                                     <th class="text-center">-</th>
                                     <th class="text-center">{{ round(collect($rekapData)->sum('total_jam_kerja'), 2) }} jam</th>
                                 </tr>
