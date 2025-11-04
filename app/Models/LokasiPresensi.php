@@ -12,18 +12,7 @@ class LokasiPresensi extends Model
     protected $table = 'lokasi_presensi';
     protected $primaryKey = 'id_lokasi';
 
-    protected $fillable = [
-        'nama_lokasi',
-        'latitude',
-        'longitude',
-        'radius_meter',
-        'jenis_lokasi',
-        'id_fakultas',
-        'status_aktif',
-        'waktu_operasional_mulai',
-        'waktu_operasional_selesai',
-        'keterangan',
-    ];
+    protected $fillable = ['nama_lokasi', 'latitude', 'longitude', 'radius_meter', 'jenis_lokasi', 'id_fakultas', 'status_aktif', 'waktu_operasional_mulai', 'waktu_operasional_selesai', 'keterangan'];
 
     protected $casts = [
         'status_aktif' => 'boolean',
@@ -62,45 +51,38 @@ class LokasiPresensi extends Model
     {
         $earthRadius = 6371000; // meters
 
-        $lat1 = deg2rad($this->latitude);
-        $lon1 = deg2rad($this->longitude);
-        $lat2 = deg2rad($lat);
-        $lon2 = deg2rad($lng);
+        $lat1 = deg2rad((float) $this->latitude);
+        $lon1 = deg2rad((float) $this->longitude);
+
+        $lat2 = deg2rad((float) $lat);
+        $lon2 = deg2rad((float) $lng);
 
         $dlat = $lat2 - $lat1;
         $dlon = $lon2 - $lon1;
 
-        $a = sin($dlat / 2) * sin($dlat / 2) +
-            cos($lat1) * cos($lat2) *
-            sin($dlon / 2) * sin($dlon / 2);
-        
+        $a = sin($dlat / 2) ** 2 + cos($lat1) * cos($lat2) * sin($dlon / 2) ** 2;
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
         $distance = $earthRadius * $c;
 
-        return $distance <= $this->radius_meter;
+        return $distance <= (float) $this->radius_meter;
     }
 
-    /**
-     * Get distance from coordinates
-     */
     public function getDistanceFrom($lat, $lng)
     {
         $earthRadius = 6371000; // meters
 
-        $lat1 = deg2rad($this->latitude);
-        $lon1 = deg2rad($this->longitude);
-        $lat2 = deg2rad($lat);
-        $lon2 = deg2rad($lng);
+        $lat1 = deg2rad((float) $this->latitude);
+        $lon1 = deg2rad((float) $this->longitude);
+
+        $lat2 = deg2rad((float) $lat);
+        $lon2 = deg2rad((float) $lng);
 
         $dlat = $lat2 - $lat1;
         $dlon = $lon2 - $lon1;
 
-        $a = sin($dlat / 2) * sin($dlat / 2) +
-            cos($lat1) * cos($lat2) *
-            sin($dlon / 2) * sin($dlon / 2);
-        
+        $a = sin($dlat / 2) ** 2 + cos($lat1) * cos($lat2) * sin($dlon / 2) ** 2;
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-        
-        return round($earthRadius * $c, 2); // Return in meters
+
+        return round($earthRadius * $c, 2);
     }
 }

@@ -316,22 +316,23 @@ class KaryawanPresensiController extends Controller
             return true;
         }
 
-        $earthRadius = 6371000;
+        $earthRadius = 6371000; // meter
 
-        $lat1 = deg2rad($lokasi->latitude);
-        $lon1 = deg2rad($lokasi->longitude);
-        $lat2 = deg2rad($latitude);
-        $lon2 = deg2rad($longitude);
+        // 🔧 Cast semua ke float agar deg2rad tidak error
+        $lat1 = deg2rad((float) $lokasi->latitude);
+        $lon1 = deg2rad((float) $lokasi->longitude);
+        $lat2 = deg2rad((float) $latitude);
+        $lon2 = deg2rad((float) $longitude);
 
         $dlat = $lat2 - $lat1;
         $dlon = $lon2 - $lon1;
 
-        $a = sin($dlat / 2) * sin($dlat / 2) + cos($lat1) * cos($lat2) * sin($dlon / 2) * sin($dlon / 2);
+        $a = sin($dlat / 2) ** 2 + cos($lat1) * cos($lat2) * sin($dlon / 2) ** 2;
 
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
         $distance = $earthRadius * $c;
 
-        return $distance <= $lokasi->radius_meter;
+        return $distance <= (float) $lokasi->radius_meter;
     }
 
     /**

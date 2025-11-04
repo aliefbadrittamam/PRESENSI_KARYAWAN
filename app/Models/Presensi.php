@@ -55,8 +55,9 @@ class Presensi extends Model
         'accuracy_keluar' => 'decimal:2',
         'confidence_score_masuk' => 'decimal:2',
         'confidence_score_keluar' => 'decimal:2',
-        'total_jam_kerja' => 'decimal:2',
-        'keterlambatan_menit' => 'integer'
+        'total_jam_kerja' => 'float',
+        'keterlambatan_menit' => 'integer',
+        'status_kehadiran' => 'string'
     ];
 
     // Relasi ke Karyawan
@@ -99,21 +100,23 @@ class Presensi extends Model
     }
 
     // Method untuk menghitung total jam kerja
-    public function hitungTotalJamKerja()
-    {
-        if ($this->jam_masuk && $this->jam_keluar) {
-            $masuk = \Carbon\Carbon::parse($this->jam_masuk);
-            $keluar = \Carbon\Carbon::parse($this->jam_keluar);
-            
-            // Handle jika keluar lebih kecil dari masuk (shift malam)
-            if ($keluar < $masuk) {
-                $keluar->addDay();
-            }
-            
-            $this->total_jam_kerja = $masuk->diffInMinutes($keluar) / 60;
-            $this->save();
+    public function hitungTotalJamKerja(): void
+{
+    if ($this->jam_masuk && $this->jam_keluar) {
+        $masuk = \Carbon\Carbon::parse($this->jam_masuk);
+        $keluar = \Carbon\Carbon::parse($this->jam_keluar);
+
+        if ($keluar < $masuk) {
+            $keluar->addDay();
         }
+
+        // Hitung total jam kerja (float, 2 desimal)
+        $this->total_jam_kerja = round($masuk->diffInMinutes($keluar) / 60, 2);
+        $this->save();
     }
+}
+
+
 
     // Method untuk cek apakah presensi masuk valid
     public function isPresensiMasukValid()
