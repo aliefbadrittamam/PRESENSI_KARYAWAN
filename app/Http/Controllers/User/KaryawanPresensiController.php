@@ -73,15 +73,15 @@ class KaryawanPresensiController extends Controller
 
         $isInRadius = $this->checkLocationRadius($request->latitude, $request->longitude, $karyawan->id_fakultas);
 
-        if (!$isInRadius) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'message' => 'Anda berada di luar radius kantor. Presensi tidak dapat dilakukan.',
-                ],
-                422,
-            );
-        }
+        // if (!$isInRadius) {
+        //     return response()->json(
+        //         [
+        //             'success' => false,
+        //             'message' => 'Anda berada di luar radius kantor. Presensi tidak dapat dilakukan.',
+        //         ],
+        //         422,
+        //     );
+        // }
 
         if ($request->tipe_absen === 'masuk') {
             return $this->storeAbsenMasuk($presensi, $request, $karyawan);

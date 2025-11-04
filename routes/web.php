@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\CutiController;
+use App\Http\Controllers\User\CutiController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\IzinController;
 use App\Http\Controllers\ShiftController;
@@ -12,9 +12,8 @@ use App\Http\Controllers\FakultasController;
 use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DepartemenController;
-use App\Http\Controllers\LokasiPresensiController;
 use App\Http\Controllers\Auth\BarcodeLoginController;
-// use App\Http\Controllers\LokasiPresensiController;
+use App\Http\Controllers\Admin\LokasiPresensiController;
 use App\Http\Controllers\User\KaryawanPresensiController;
 use App\Http\Controllers\User\KaryawanDashboardController;
 
@@ -61,42 +60,47 @@ Auth::routes(['register' => false, 'reset' => false]);
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
-
     // DASHBOARD KARYAWAN
     Route::get('/dashboard', [KaryawanDashboardController::class, 'index'])->name('karyawan.dashboard');
     Route::get('/user/dashboard', [KaryawanDashboardController::class, 'index'])->name('user.dashboard');
     Route::get('/profile', [KaryawanDashboardController::class, 'profile'])->name('karyawan.profile');
 
     // PRESENSI - USER (KaryawanPresensiController)
-    Route::prefix('user/presensi')->name('presensi.')->group(function () {
-        Route::get('/', [KaryawanPresensiController::class, 'index'])->name('index');
-        Route::get('/create', [KaryawanPresensiController::class, 'index'])->name('create');
-        
-        Route::post('/store', [KaryawanPresensiController::class, 'store'])->name('store');
-        Route::post('/masuk', [KaryawanPresensiController::class, 'storeMasuk'])->name('masuk');
-        Route::post('/keluar', [KaryawanPresensiController::class, 'storeKeluar'])->name('keluar');
-        
-        Route::get('/history', [KaryawanPresensiController::class, 'history'])->name('history');
-        Route::get('/rekap', [KaryawanPresensiController::class, 'rekap'])->name('rekap');
-        
-        Route::get('/{id}', [KaryawanPresensiController::class, 'show'])->name('show');
-    });
+    Route::prefix('user/presensi')
+        ->name('presensi.')
+        ->group(function () {
+            Route::get('/', [KaryawanPresensiController::class, 'index'])->name('index');
+            Route::get('/create', [KaryawanPresensiController::class, 'index'])->name('create');
+
+            Route::post('/store', [KaryawanPresensiController::class, 'store'])->name('store');
+            Route::post('/masuk', [KaryawanPresensiController::class, 'storeMasuk'])->name('masuk');
+            Route::post('/keluar', [KaryawanPresensiController::class, 'storeKeluar'])->name('keluar');
+
+            Route::get('/history', [KaryawanPresensiController::class, 'history'])->name('history');
+            Route::get('/rekap', [KaryawanPresensiController::class, 'rekap'])->name('rekap');
+
+            Route::get('/{id}', [KaryawanPresensiController::class, 'show'])->name('show');
+        });
 
     // IZIN
-    Route::prefix('izin')->name('izin.')->group(function () {
-        Route::get('/', [IzinController::class, 'index'])->name('index');
-        Route::get('/create', [IzinController::class, 'create'])->name('create');
-        Route::post('/', [IzinController::class, 'store'])->name('store');
-        Route::get('/{id}', [IzinController::class, 'show'])->name('show');
-    });
+    Route::prefix('izin')
+        ->name('izin.')
+        ->group(function () {
+            Route::get('/', [IzinController::class, 'index'])->name('index');
+            Route::get('/create', [IzinController::class, 'create'])->name('create');
+            Route::post('/', [IzinController::class, 'store'])->name('store');
+            Route::get('/{id}', [IzinController::class, 'show'])->name('show');
+        });
 
     // CUTI
-    Route::prefix('cuti')->name('cuti.')->group(function () {
-        Route::get('/', [CutiController::class, 'index'])->name('index');
-        Route::get('/create', [CutiController::class, 'create'])->name('create');
-        Route::post('/', [CutiController::class, 'store'])->name('store');
-        Route::get('/{id}', [CutiController::class, 'show'])->name('show');
-    });
+    Route::prefix('cuti')
+        ->name('cuti.')
+        ->group(function () {
+            Route::get('/', [CutiController::class, 'index'])->name('index');
+            Route::get('/create', [CutiController::class, 'create'])->name('create');
+            Route::post('/', [CutiController::class, 'store'])->name('store');
+            Route::get('/{id}', [CutiController::class, 'show'])->name('show');
+        });
 });
 
 /*
@@ -105,7 +109,6 @@ Route::middleware(['auth'])->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
-
     // DASHBOARD ADMIN
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 
@@ -116,27 +119,29 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('karyawan', KaryawanController::class);
     Route::resource('shift', ShiftController::class);
     // Route::resource('lokasi', LokasiPresensiController::class);
-       
 
     // PRESENSI - ADMIN (PresensiController)
-    Route::prefix('presensi')->name('admin.presensi.')->group(function () {
-        Route::get('/', [PresensiController::class, 'index'])->name('index');
-        Route::get('/rekap', [PresensiController::class, 'rekap'])->name('rekap');
-        Route::get('/rekap/download-pdf', [PresensiController::class, 'downloadPdf'])->name('download-pdf');
-        Route::get('/{id}', [PresensiController::class, 'show'])->name('show');
-    });
+    Route::prefix('presensi')
+        ->name('admin.presensi.')
+        ->group(function () {
+            Route::get('/', [PresensiController::class, 'index'])->name('index');
+            Route::get('/rekap', [PresensiController::class, 'rekap'])->name('rekap');
+            Route::get('/rekap/download-pdf', [PresensiController::class, 'downloadPdf'])->name('download-pdf');
+            Route::get('/{id}', [PresensiController::class, 'show'])->name('show');
+        });
 
-    Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
-    
-    // ... routes lainnya ...
-    
-    // LOKASI PRESENSI - CRUD
-    Route::resource('lokasi-presensi', LokasiPresensiController::class, [
-        'parameters' => ['lokasi-presensi' => 'id']
-    ]);
-    
-    // Get coordinates (AJAX)
-    Route::post('lokasi-presensi/get-coordinates', [App\Http\Controllers\Admin\LokasiPresensiController::class, 'getCoordinates'])
-        ->name('lokasi-presensi.get-coordinates');
-});
+    Route::middleware(['auth'])
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
+            // ... routes lainnya ...
+
+            // LOKASI PRESENSI - CRUD
+           Route::resource('lokasi-presensi', App\Http\Controllers\Admin\LokasiPresensiController::class, [
+    'parameters' => ['lokasi-presensi' => 'id']
+]);
+
+            // Get coordinates (AJAX)
+            Route::post('lokasi-presensi/get-coordinates', [App\Http\Controllers\Admin\LokasiPresensiController::class, 'getCoordinates'])->name('lokasi-presensi.get-coordinates');
+        });
 });

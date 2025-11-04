@@ -30,7 +30,7 @@
             <div class="action-label">Absen</div>
         </a>
         
-        <a href="{{ route('izin.create') }}" class="action-item">
+        <a href="{{ route('izin.index') }}" class="action-item">
             <div class="action-icon icon-izin">
                 <i class="fas fa-clipboard-list"></i>
             </div>
