@@ -101,6 +101,11 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/', [CutiController::class, 'store'])->name('store');
             Route::get('/{id}', [CutiController::class, 'show'])->name('show');
         });
+    // PROFILE
+    Route::get('/profile', [KaryawanDashboardController::class, 'profile'])->name('karyawan.profile');
+    Route::post('/profile/password', [KaryawanDashboardController::class, 'updatePassword'])->name('karyawan.update-password');
+    Route::post('/profile/photo', [KaryawanDashboardController::class, 'updatePhoto'])->name('karyawan.update-photo');
+    Route::post('/profile/regenerate-qrcode', [KaryawanDashboardController::class, 'regenerateQRCode'])->name('karyawan.regenerate-qrcode');
 });
 
 /*
