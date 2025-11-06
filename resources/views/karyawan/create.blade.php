@@ -147,11 +147,19 @@
                             <div class="mb-3">
                                 <label for="foto" class="form-label text-white">Foto Profil</label>
                                 <input type="file" class="form-control form-control-modern @error('foto') is-invalid @enderror" 
-                                       id="foto" name="foto" accept="image/*">
+                                       id="foto" name="foto" accept="image/*" onchange="previewImage(this)">
                                 <div class="form-text text-muted">Format: JPG, PNG, JPEG (Max: 2MB)</div>
                                 @error('foto')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+
+                                <!-- New Photo Preview (sama seperti di halaman edit) -->
+                                <div class="mt-2 text-center" id="newPhotoPreview" style="display: none;">
+                                    <img id="preview" class="rounded-circle" width="80" height="80" style="object-fit: cover;">
+                                    <div class="mt-1">
+                                        <small class="text-muted">Pratinjau foto baru</small>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="mb-3 form-check form-switch">
@@ -175,3 +183,36 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    // Preview new photo before upload (dipanggil oleh onchange pada input#foto)
+    function previewImage(input) {
+        const preview = document.getElementById('preview');
+        const newPhotoPreview = document.getElementById('newPhotoPreview');
+        
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+
+            // opsional: validasi ukuran file (contoh 2MB)
+            const maxSizeBytes = 2 * 1024 * 1024;
+            if (file.size > maxSizeBytes) {
+                alert('Ukuran file terlalu besar. Maksimum 2MB.');
+                input.value = ''; // reset input
+                newPhotoPreview.style.display = 'none';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                newPhotoPreview.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        } else {
+            newPhotoPreview.style.display = 'none';
+        }
+    }
+</script>
+@endpush
+  
