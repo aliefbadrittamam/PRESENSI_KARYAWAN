@@ -122,7 +122,10 @@ class Izin extends Model
     {
         return $query->where('status_approval', 'pending');
     }
-
+  public function approvedBy()
+    {
+        return $this->belongsTo(User::class, 'approved_by', 'id');
+    }
     /**
      * Scope untuk izin approved
      */

@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\Auth;
 class LoginController extends Controller
 {
     // 🔹 Menampilkan halaman login untuk Admin
+    public function showLoginForm()
+    {
+        return view('auth.login');
+    }
+
     public function showAdminLoginForm()
     {
         return view('auth.login');

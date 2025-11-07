@@ -22,14 +22,25 @@ class KaryawanPresensiController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $karyawan = Karyawan::where('user_id', $user->id)->firstOrFail();
+        $karyawan = Karyawan::where('user_id', $user->id)
+            ->with(['fakultas', 'departemen', 'jabatan'])
+            ->firstOrFail();
 
+        // Get shift aktif
         $shift = ShiftKerja::where('status_aktif', 1)->first();
+
+        // Get lokasi presensi berdasarkan fakultas karyawan
+        $lokasiPresensi = LokasiPresensi::where('id_fakultas', $karyawan->id_fakultas)->where('status_aktif', 1)->first();
+
+        // Jika tidak ada lokasi spesifik fakultas, ambil lokasi umum
+        if (!$lokasiPresensi) {
+            $lokasiPresensi = LokasiPresensi::whereNull('id_fakultas')->where('status_aktif', 1)->first();
+        }
 
         $today = Carbon::today();
         $presensiHariIni = Presensi::where('id_karyawan', $karyawan->id_karyawan)->whereDate('tanggal_presensi', $today)->first();
 
-        return view('user.presensi.index', compact('karyawan', 'shift', 'presensiHariIni'));
+        return view('user.presensi.index', compact('karyawan', 'shift', 'presensiHariIni', 'lokasiPresensi'));
     }
 
     /**
@@ -41,14 +52,13 @@ class KaryawanPresensiController extends Controller
             [
                 'latitude' => 'required|numeric|between:-90,90',
                 'longitude' => 'required|numeric|between:-180,180',
-                // 'accuracy' => 'required|numeric|min:0|max:1000', // Maksimal 1000 meter
                 'alamat' => 'required|string|max:500',
                 'foto' => 'required|string',
                 'tipe_absen' => 'required|in:masuk,keluar',
                 'catatan' => 'nullable|string|max:500',
+                'mode_demo' => 'nullable|boolean', // Mode demo flag
             ],
             [
-                // 'accuracy.max' => 'Akurasi GPS terlalu rendah. Pastikan Anda berada di area terbuka.',
                 'latitude.between' => 'Koordinat latitude tidak valid.',
                 'longitude.between' => 'Koordinat longitude tidak valid.',
             ],
@@ -71,29 +81,37 @@ class KaryawanPresensiController extends Controller
             ],
         );
 
-        $isInRadius = $this->checkLocationRadius($request->latitude, $request->longitude, $karyawan->id_fakultas);
+        // Check mode demo
+        $modeDemo = $request->input('mode_demo', false);
 
-        // if (!$isInRadius) {
-        //     return response()->json(
-        //         [
-        //             'success' => false,
-        //             'message' => 'Anda berada di luar radius kantor. Presensi tidak dapat dilakukan.',
-        //         ],
-        //         422,
-        //     );
-        // }
+        if (!$modeDemo) {
+            // Validasi lokasi hanya jika BUKAN mode demo
+            $isInRadius = $this->checkLocationRadius($request->latitude, $request->longitude, $karyawan->id_fakultas);
+
+            if (!$isInRadius) {
+                $lokasiInfo = $this->getLokasiInfo($karyawan->id_fakultas);
+                return response()->json(
+                    [
+                        'success' => false,
+                        'message' => "Anda berada di luar radius kantor {$lokasiInfo['nama']}. Radius yang diizinkan: {$lokasiInfo['radius']} meter.",
+                        'lokasi_kantor' => $lokasiInfo,
+                    ],
+                    422,
+                );
+            }
+        }
 
         if ($request->tipe_absen === 'masuk') {
-            return $this->storeAbsenMasuk($presensi, $request, $karyawan);
+            return $this->storeAbsenMasuk($presensi, $request, $karyawan, $modeDemo);
         } else {
-            return $this->storeAbsenKeluar($presensi, $request, $karyawan);
+            return $this->storeAbsenKeluar($presensi, $request, $karyawan, $modeDemo);
         }
     }
 
     /**
      * Store absen masuk
      */
-    private function storeAbsenMasuk($presensi, $request, $karyawan)
+    private function storeAbsenMasuk($presensi, $request, $karyawan, $modeDemo = false)
     {
         if ($presensi->jam_masuk) {
             return response()->json(
@@ -116,7 +134,6 @@ class KaryawanPresensiController extends Controller
             $toleransi = $shift->toleransi_keterlambatan ?? 15;
             $batasWaktu = $jamMulai->copy()->addMinutes($toleransi);
 
-            // Fix: Hitung keterlambatan dengan benar
             if ($now->greaterThan($batasWaktu)) {
                 $keterlambatan = $now->diffInMinutes($jamMulai);
                 $statusKehadiran = 'terlambat';
@@ -124,37 +141,44 @@ class KaryawanPresensiController extends Controller
         }
 
         // Validasi dan sanitasi accuracy
-        $accuracy = floatval($request->accuracy);
-
-        // Jika accuracy terlalu besar (>1000m atau 1km), set ke nilai maksimum
+        $accuracy = floatval($request->accuracy ?? 0);
         if ($accuracy > 1000) {
             $accuracy = 1000;
-            \Log::warning("GPS accuracy too large: {$request->accuracy}m, capped to 1000m");
         }
-
-        // Jika accuracy negatif, set ke 0
         if ($accuracy < 0) {
             $accuracy = 0;
         }
 
         $fotoPath = $this->savePhoto($request->foto, 'masuk', $karyawan->id_karyawan);
 
+        // Tambahkan info mode demo di catatan
+        $catatan = $request->catatan;
+        if ($modeDemo) {
+            $catatan = ($catatan ? $catatan . ' | ' : '') . '[MODE DEMO]';
+        }
+
         $presensi->update([
             'jam_masuk' => $now->format('H:i:s'),
             'latitude_masuk' => $request->latitude,
             'longitude_masuk' => $request->longitude,
             'alamat_masuk' => $request->alamat,
-            'accuracy_masuk' => $accuracy, // Gunakan nilai yang sudah divalidasi
+            'accuracy_masuk' => $accuracy,
             'foto_masuk' => $fotoPath,
             'status_kehadiran' => $statusKehadiran,
-            'keterlambatan_menit' => max(0, $keterlambatan), // Pastikan tidak negatif
-            'catatan' => $request->catatan,
+            'keterlambatan_menit' => max(0, $keterlambatan),
+            'catatan' => $catatan,
             'status_verifikasi' => 'verified',
         ]);
 
+        $message = $statusKehadiran === 'terlambat' ? "Absen masuk berhasil. Anda terlambat {$keterlambatan} menit." : 'Absen masuk berhasil!';
+
+        if ($modeDemo) {
+            $message .= ' (Mode Demo)';
+        }
+
         return response()->json([
             'success' => true,
-            'message' => $statusKehadiran === 'terlambat' ? "Absen masuk berhasil. Anda terlambat {$keterlambatan} menit." : 'Absen masuk berhasil!',
+            'message' => $message,
             'data' => $presensi,
         ]);
     }
@@ -162,7 +186,7 @@ class KaryawanPresensiController extends Controller
     /**
      * Store absen keluar
      */
-    private function storeAbsenKeluar($presensi, $request, $karyawan)
+    private function storeAbsenKeluar($presensi, $request, $karyawan, $modeDemo = false)
     {
         if (!$presensi->jam_masuk) {
             return response()->json(
@@ -185,15 +209,13 @@ class KaryawanPresensiController extends Controller
         }
 
         $now = Carbon::now();
-
         $jamMasuk = Carbon::parse($presensi->jam_masuk);
         $totalJamKerja = $jamMasuk->diffInHours($now, true);
 
         // Validasi dan sanitasi accuracy
-        $accuracy = floatval($request->accuracy);
+        $accuracy = floatval($request->accuracy ?? 0);
         if ($accuracy > 1000) {
             $accuracy = 1000;
-            \Log::warning("GPS accuracy too large: {$request->accuracy}m, capped to 1000m");
         }
         if ($accuracy < 0) {
             $accuracy = 0;
@@ -201,92 +223,93 @@ class KaryawanPresensiController extends Controller
 
         $fotoPath = $this->savePhoto($request->foto, 'keluar', $karyawan->id_karyawan);
 
+        // Tambahkan info mode demo di catatan
+        $catatan = $presensi->catatan . ($request->catatan ? ' | ' . $request->catatan : '');
+        if ($modeDemo) {
+            $catatan .= ' | [MODE DEMO]';
+        }
+
         $presensi->update([
             'jam_keluar' => $now->format('H:i:s'),
             'latitude_keluar' => $request->latitude,
             'longitude_keluar' => $request->longitude,
             'alamat_keluar' => $request->alamat,
-            'accuracy_keluar' => $accuracy, // Gunakan nilai yang sudah divalidasi
+            'accuracy_keluar' => $accuracy,
             'foto_keluar' => $fotoPath,
             'total_jam_kerja' => round($totalJamKerja, 2),
-            'catatan' => $presensi->catatan . ($request->catatan ? ' | ' . $request->catatan : ''),
+            'catatan' => $catatan,
         ]);
+
+        $message = 'Absen keluar berhasil! Total jam kerja: ' . number_format($totalJamKerja, 1) . ' jam';
+        if ($modeDemo) {
+            $message .= ' (Mode Demo)';
+        }
 
         return response()->json([
             'success' => true,
-            'message' => 'Absen keluar berhasil! Total jam kerja: ' . number_format($totalJamKerja, 1) . ' jam',
+            'message' => $message,
             'data' => $presensi,
         ]);
     }
 
     /**
-     * Backward compatibility methods
+     * Get lokasi info
      */
-    public function storeMasuk(Request $request)
+    private function getLokasiInfo($idFakultas)
     {
-        $request->merge(['tipe_absen' => 'masuk']);
-        return $this->store($request);
+        $lokasi = LokasiPresensi::where('id_fakultas', $idFakultas)->where('status_aktif', 1)->first();
+
+        if (!$lokasi) {
+            $lokasi = LokasiPresensi::whereNull('id_fakultas')->where('status_aktif', 1)->first();
+        }
+
+        if (!$lokasi) {
+            return [
+                'nama' => 'Tidak ada lokasi terdaftar',
+                'radius' => 0,
+                'latitude' => 0,
+                'longitude' => 0,
+            ];
+        }
+
+        return [
+            'nama' => $lokasi->nama_lokasi,
+            'radius' => $lokasi->radius_meter,
+            'latitude' => $lokasi->latitude,
+            'longitude' => $lokasi->longitude,
+        ];
     }
 
-    public function storeKeluar(Request $request)
-    {
-        $request->merge(['tipe_absen' => 'keluar']);
-        return $this->store($request);
-    }
-
     /**
      * Save photo from base64
-     */
-    /**
-     * Save photo from base64
-     */
-    /**
-     * Save photo from base64
-     * Struktur folder: storage/app/public/FotoPresensi/NIP_Karyawan/YYYY-MM/
-     */
-    /**
-     * Save photo from base64
-     * Struktur folder: FotoPresensi/YYYY-MM/Masuk atau Keluar/TGL_WAKTU_NAMA(NIP).jpg
-     * Contoh: FotoPresensi/2025-11/Masuk/02-11-2025_134308_John_Doe(123456).jpg
      */
     private function savePhoto($base64Image, $tipe, $idKaryawan)
     {
-        // Ambil data karyawan untuk mendapatkan nama dan NIP
         $karyawan = Karyawan::find($idKaryawan);
         $namaKaryawan = $karyawan ? $karyawan->nama_lengkap : 'Unknown';
         $nip = $karyawan ? $karyawan->nip : $idKaryawan;
 
-        // Bersihkan nama (hapus spasi dan karakter special, ganti dengan underscore)
         $namaClean = str_replace(' ', '_', $namaKaryawan);
         $namaClean = preg_replace('/[^A-Za-z0-9_]/', '', $namaClean);
 
-        // Hapus prefix base64 dan decode data
         $image = preg_replace('/^data:image\/\w+;base64,/', '', $base64Image);
         $image = str_replace(' ', '+', $image);
         $imageData = base64_decode($image);
 
-        // Buat struktur folder: FotoPresensi/YYYY-MM/Masuk atau Keluar
-        $yearMonth = date('Y-m'); // Format: 2025-11
-        $tipeFolderName = ucfirst(strtolower($tipe)); // "Masuk" atau "Keluar"
+        $yearMonth = date('Y-m');
+        $tipeFolderName = ucfirst(strtolower($tipe));
         $folderPath = "FotoPresensi/{$yearMonth}/{$tipeFolderName}";
 
-        // Buat nama file: TGL_WAKTU_NAMA(NIP).jpg
-        // Format: 02-11-2025_134308_John_Doe(123456).jpg
-        $tanggal = date('d-m-Y'); // 02-11-2025
-        $waktu = date('His'); // 134308
+        $tanggal = date('d-m-Y');
+        $waktu = date('His');
         $filename = "{$tanggal}_{$waktu}_{$namaClean}({$nip}).jpg";
 
-        // Path lengkap file
         $fullPath = "{$folderPath}/{$filename}";
 
-        // Pastikan direktori ada
         Storage::disk('public')->makeDirectory($folderPath);
-
-        // Simpan file utama
         Storage::disk('public')->put($fullPath, $imageData);
 
         try {
-            // Buat thumbnail (versi lebih kecil) - simpan di folder yang sama
             $thumbnailFilename = "thumb_{$filename}";
             $thumbnailPath = "{$folderPath}/{$thumbnailFilename}";
 
@@ -294,14 +317,10 @@ class KaryawanPresensiController extends Controller
             $img = $manager->read(storage_path("app/public/{$fullPath}"));
             $img->scale(width: 300);
             $img->save(storage_path("app/public/{$thumbnailPath}"));
-
-            \Log::info("Photo saved successfully: {$fullPath}");
-            \Log::info("Thumbnail created successfully: {$thumbnailPath}");
         } catch (\Exception $e) {
             \Log::error('Thumbnail creation failed: ' . $e->getMessage());
         }
 
-        // Return path relatif (untuk disimpan di database)
         return $fullPath;
     }
 
@@ -310,15 +329,21 @@ class KaryawanPresensiController extends Controller
      */
     private function checkLocationRadius($latitude, $longitude, $idFakultas)
     {
+        // Cari lokasi berdasarkan fakultas karyawan
         $lokasi = LokasiPresensi::where('id_fakultas', $idFakultas)->where('status_aktif', 1)->first();
 
+        // Jika tidak ada, cari lokasi umum (tanpa fakultas)
+        if (!$lokasi) {
+            $lokasi = LokasiPresensi::whereNull('id_fakultas')->where('status_aktif', 1)->first();
+        }
+
+        // Jika tetap tidak ada lokasi, izinkan (return true)
         if (!$lokasi) {
             return true;
         }
 
         $earthRadius = 6371000; // meter
 
-        // 🔧 Cast semua ke float agar deg2rad tidak error
         $lat1 = deg2rad((float) $lokasi->latitude);
         $lon1 = deg2rad((float) $lokasi->longitude);
         $lat2 = deg2rad((float) $latitude);
@@ -328,9 +353,16 @@ class KaryawanPresensiController extends Controller
         $dlon = $lon2 - $lon1;
 
         $a = sin($dlat / 2) ** 2 + cos($lat1) * cos($lat2) * sin($dlon / 2) ** 2;
-
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
         $distance = $earthRadius * $c;
+
+        \Log::info('Distance check', [
+            'lokasi' => $lokasi->nama_lokasi,
+            'fakultas_id' => $idFakultas,
+            'radius_allowed' => $lokasi->radius_meter,
+            'distance_actual' => $distance,
+            'is_valid' => $distance <= (float) $lokasi->radius_meter,
+        ]);
 
         return $distance <= (float) $lokasi->radius_meter;
     }
@@ -342,7 +374,6 @@ class KaryawanPresensiController extends Controller
     {
         return ShiftKerja::where('status_aktif', 1)->first();
     }
-
     /**
      * Show presensi history
      */

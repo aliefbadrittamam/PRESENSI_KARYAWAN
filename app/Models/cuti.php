@@ -13,21 +13,7 @@ class Cuti extends Model
     protected $table = 'cuti';
     protected $primaryKey = 'id_cuti';
 
-    protected $fillable = [
-        'id_karyawan',
-        'jenis_cuti',
-        'tanggal_mulai',
-        'tanggal_selesai',
-        'jumlah_hari',
-        'keterangan',
-        'file_pendukung',
-        'status_approval',
-        'tanggal_pengajuan',
-        'tanggal_approval',
-        'approved_by',
-        'alasan_penolakan',
-        'sisa_cuti_tahunan',
-    ];
+    protected $fillable = ['id_karyawan', 'jenis_cuti', 'tanggal_mulai', 'tanggal_selesai', 'jumlah_hari', 'keterangan', 'file_pendukung', 'status_approval', 'tanggal_pengajuan', 'tanggal_approval', 'approved_by', 'alasan_penolakan', 'sisa_cuti_tahunan'];
 
     protected $casts = [
         'tanggal_mulai' => 'date',
@@ -148,9 +134,11 @@ class Cuti extends Model
      */
     public function scopeCutiTahunanThisYear($query, $idKaryawan)
     {
-        return $query->where('id_karyawan', $idKaryawan)
-                     ->where('jenis_cuti', 'tahunan')
-                     ->where('status_approval', 'approved')
-                     ->whereYear('tanggal_mulai', date('Y'));
+        return $query->where('id_karyawan', $idKaryawan)->where('jenis_cuti', 'tahunan')->where('status_approval', 'approved')->whereYear('tanggal_mulai', date('Y'));
+    }
+
+    public function approvedBy()
+    {
+        return $this->belongsTo(User::class, 'approved_by', 'id');
     }
 }

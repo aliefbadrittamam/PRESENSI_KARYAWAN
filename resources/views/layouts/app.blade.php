@@ -516,6 +516,27 @@
                             </ul>
                         </li>
 
+                        <!-- Tambahkan menu ini di sidebar setelah menu Presensi -->
+
+                        <!-- Pengajuan Izin & Cuti -->
+                        <li class="nav-item">
+                            <a href="{{ route('admin.pengajuan.index') }}"
+                                class="nav-link {{ Request::is('admin/pengajuan*') ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-file-alt"></i>
+                                <p>
+                                    Pengajuan
+                                    @php
+                                        $totalPending =
+                                            App\Models\Izin::where('status_approval', 'pending')->count() +
+                                            App\Models\Cuti::where('status_approval', 'pending')->count();
+                                    @endphp
+                                    @if ($totalPending > 0)
+                                        <span class="right badge badge-warning">{{ $totalPending }}</span>
+                                    @endif
+                                </p>
+                            </a>
+                        </li>
+
                         <!-- Konfigurasi -->
                         <li class="nav-item {{ Request::is('shift*', 'lokasi*') ? 'menu-open' : '' }}">
                             <a href="#"

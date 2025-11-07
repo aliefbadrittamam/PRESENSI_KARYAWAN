@@ -135,6 +135,25 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{id}', [PresensiController::class, 'show'])->name('show');
         });
 
+    Route::prefix('admin/pengajuan')
+        ->name('admin.pengajuan.')
+        ->group(function () {
+            // List all pengajuan
+            Route::get('/', [App\Http\Controllers\Admin\PengajuanController::class, 'index'])->name('index');
+
+            // Detail
+            Route::get('/izin/{id}', [App\Http\Controllers\Admin\PengajuanController::class, 'showIzin'])->name('show-izin');
+            Route::get('/cuti/{id}', [App\Http\Controllers\Admin\PengajuanController::class, 'showCuti'])->name('show-cuti');
+
+            // Approve
+            Route::post('/izin/{id}/approve', [App\Http\Controllers\Admin\PengajuanController::class, 'approveIzin'])->name('approve-izin');
+            Route::post('/cuti/{id}/approve', [App\Http\Controllers\Admin\PengajuanController::class, 'approveCuti'])->name('approve-cuti');
+
+            // Reject
+            Route::post('/izin/{id}/reject', [App\Http\Controllers\Admin\PengajuanController::class, 'rejectIzin'])->name('reject-izin');
+            Route::post('/cuti/{id}/reject', [App\Http\Controllers\Admin\PengajuanController::class, 'rejectCuti'])->name('reject-cuti');
+        });
+
     Route::middleware(['auth'])
         ->prefix('admin')
         ->name('admin.')
@@ -142,9 +161,9 @@ Route::middleware(['auth'])->group(function () {
             // ... routes lainnya ...
 
             // LOKASI PRESENSI - CRUD
-           Route::resource('lokasi-presensi', App\Http\Controllers\Admin\LokasiPresensiController::class, [
-    'parameters' => ['lokasi-presensi' => 'id']
-]);
+            Route::resource('lokasi-presensi', App\Http\Controllers\Admin\LokasiPresensiController::class, [
+                'parameters' => ['lokasi-presensi' => 'id'],
+            ]);
 
             // Get coordinates (AJAX)
             Route::post('lokasi-presensi/get-coordinates', [App\Http\Controllers\Admin\LokasiPresensiController::class, 'getCoordinates'])->name('lokasi-presensi.get-coordinates');
