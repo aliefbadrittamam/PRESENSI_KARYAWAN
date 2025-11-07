@@ -8,26 +8,78 @@
     .info-card {
         border-left: 4px solid #ffc107;
         margin-bottom: 20px;
+        background: #fff;
     }
     
-    .info-row {
-        padding: 10px 0;
-        border-bottom: 1px solid #f0f0f0;
+    .info-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border: 1px solid #e9ecef;
     }
     
-    .info-row:last-child {
-        border-bottom: none;
+    .info-section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #343a40;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #ffc107;
+        display: flex;
+        align-items: center;
+    }
+    
+    .info-section-title i {
+        margin-right: 10px;
+        color: #ffc107;
+    }
+    
+    .info-item {
+        background: #fff;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 12px;
+        border: 1px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+    
+    .info-item:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transform: translateY(-1px);
     }
     
     .info-label {
         font-weight: 600;
         color: #6c757d;
-        margin-bottom: 5px;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .info-label i {
+        margin-right: 8px;
+        width: 20px;
+        text-align: center;
     }
     
     .info-value {
-        font-size: 1.1rem;
+        font-size: 1.15rem;
         color: #212529;
+        font-weight: 500;
+        line-height: 1.5;
+    }
+    
+    .keterangan-box {
+        background: #fff;
+        border-radius: 8px;
+        padding: 20px;
+        border: 1px solid #e9ecef;
+        min-height: 100px;
+        line-height: 1.8;
     }
     
     .timeline {
@@ -51,12 +103,27 @@
         align-items: center;
         justify-content: center;
         font-size: 1.2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     }
     
     .timeline-content {
         padding: 15px;
         background: #f8f9fa;
         border-radius: 8px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .status-badge-large {
+        font-size: 1.3rem;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-weight: 600;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
+    
+    .badge-lg {
+        padding: 8px 16px;
+        font-size: 0.95rem;
     }
 </style>
 @endpush
