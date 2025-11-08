@@ -14,7 +14,7 @@
                     </h4>
                 </div>
                 <div class="card-body">
-                    <form method="GET" action="{{ route('presensi.rekap') }}">
+                    <form method="GET" action="{{ route('admin.presensi.rekap') }}">
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="form-group">
@@ -243,7 +243,7 @@
                                     <td>{{ $presensi->keterlambatan_menit > 0 ? $presensi->keterlambatan_menit . ' menit' : '-' }}</td>
                                     <td>{{ $presensi->total_jam_kerja ? number_format($presensi->total_jam_kerja, 1) . ' jam' : '-' }}</td>
                                     <td>
-                                        <a href="{{ route('presensi.show', $presensi->id_presensi) }}" class="btn btn-sm btn-info">
+                                        <a href="{{ route('admin.presensi.show', $presensi->id_presensi) }}" class="btn btn-sm btn-info">
                                             <i class="fas fa-eye"></i> Detail
                                         </a>
                                     </td>

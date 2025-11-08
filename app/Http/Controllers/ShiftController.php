@@ -11,7 +11,7 @@ class ShiftController extends Controller
     public function index()
     {
         $shifts = ShiftKerja::all();
-        return view('shift.index', compact('shifts'));
+        return view('admin.shift.index', compact('shifts'));
     }
 
     public function create()
@@ -39,7 +39,7 @@ class ShiftController extends Controller
 
         ShiftKerja::create($request->all());
 
-        return redirect()->route('shift.index')
+        return redirect()->route('admin.shift.index')
             ->with('success', 'Shift kerja berhasil ditambahkan.');
     }
 
@@ -74,7 +74,7 @@ class ShiftController extends Controller
 
         $shift->update($request->all());
 
-        return redirect()->route('shift.index')
+        return redirect()->route('admin.shift.index')
             ->with('success', 'Shift kerja berhasil diperbarui.');
     }
 
@@ -82,13 +82,13 @@ class ShiftController extends Controller
     {
         // Cek apakah shift memiliki presensi
         if ($shift->presensi()->count() > 0) {
-            return redirect()->route('shift.index')
+            return redirect()->route('admin.shift.index')
                 ->with('error', 'Tidak dapat menghapus shift karena masih memiliki data presensi.');
         }
 
         $shift->delete();
 
-        return redirect()->route('shift.index')
+        return redirect()->route('admin.shift.index')
             ->with('success', 'Shift kerja berhasil dihapus.');
     }
 }

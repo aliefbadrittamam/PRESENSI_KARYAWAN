@@ -6,7 +6,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="text-white mb-0"><i class="fas fa-university me-2"></i>Data Fakultas</h4>
-    <a href="{{ route('fakultas.create') }}" class="btn btn-primary-modern btn-modern">
+    <a href="{{ route('admin.fakultas.create') }}" class="btn btn-primary-modern btn-modern">
         <i class="fas fa-plus-circle me-2"></i>Tambah Fakultas
     </a>
 </div>
@@ -46,11 +46,11 @@
                         </td>
                         <td>
                             <div class="btn-group btn-group-sm" role="group">
-                                <a href="{{ route('fakultas.edit', $item->id_fakultas) }}" 
+                                <a href="{{ route('admin.fakultas.edit', $item->id_fakultas) }}" 
                                    class="btn btn-warning btn-modern" data-bs-toggle="tooltip" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form action="{{ route('fakultas.destroy', $item->id_fakultas) }}" method="POST" class="d-inline">
+                                <form action="{{ route('admin.fakultas.destroy', $item->id_fakultas) }}" method="POST" class="d-inline">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger btn-modern" 
@@ -67,7 +67,7 @@
                         <td colspan="6" class="text-center py-4">
                             <i class="fas fa-university fa-3x text-muted mb-3"></i>
                             <p class="text-muted">Tidak ada data fakultas.</p>
-                            <a href="{{ route('fakultas.create') }}" class="btn btn-primary-modern btn-modern">
+                            <a href="{{ route('admin.fakultas.create') }}" class="btn btn-primary-modern btn-modern">
                                 <i class="fas fa-plus me-2"></i>Tambah Fakultas Pertama
                             </a>
                         </td>

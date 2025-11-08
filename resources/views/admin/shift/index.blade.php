@@ -6,7 +6,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="text-white mb-0"><i class="fas fa-clock me-2"></i>Data Shift Kerja</h4>
-    <a href="{{ route('shift.create') }}" class="btn btn-primary-modern btn-modern">
+    <a href="{{ route('admin.shift.create') }}" class="btn btn-primary-modern btn-modern">
         <i class="fas fa-plus-circle me-2"></i>Tambah Shift
     </a>
 </div>
@@ -70,15 +70,15 @@
                         </td>
                         <td>
                             <div class="btn-group btn-group-sm" role="group">
-                                <a href="{{ route('shift.show', $shift->id_shift) }}" 
+                                <a href="{{ route('admin.shift.show', $shift->id_shift) }}" 
                                    class="btn btn-info btn-modern" data-bs-toggle="tooltip" title="Detail">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                <a href="{{ route('shift.edit', $shift->id_shift) }}" 
+                                <a href="{{ route('admin.shift.edit', $shift->id_shift) }}" 
                                    class="btn btn-warning btn-modern" data-bs-toggle="tooltip" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form action="{{ route('shift.destroy', $shift->id_shift) }}" method="POST" class="d-inline">
+                                <form action="{{ route('admin.shift.destroy', $shift->id_shift) }}" method="POST" class="d-inline">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger btn-modern" 
@@ -95,7 +95,7 @@
                         <td colspan="8" class="text-center py-4">
                             <i class="fas fa-clock fa-3x text-muted mb-3"></i>
                             <p class="text-muted">Tidak ada data shift kerja.</p>
-                            <a href="{{ route('shift.create') }}" class="btn btn-primary-modern btn-modern">
+                            <a href="{{ route('admin.shift.create') }}" class="btn btn-primary-modern btn-modern">
                                 <i class="fas fa-plus me-2"></i>Tambah Shift Pertama
                             </a>
                         </td>

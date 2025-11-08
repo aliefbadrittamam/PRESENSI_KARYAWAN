@@ -11,7 +11,7 @@
             <a href="{{ route('presensi.create') }}" class="btn btn-primary-modern btn-modern me-2">
                 <i class="fas fa-plus-circle me-2"></i>Tambah Presensi
             </a>
-            <a href="{{ route('presensi.rekap') }}" class="btn btn-info btn-modern">
+            <a href="{{ route('admin.presensi.rekap') }}" class="btn btn-info btn-modern">
                 <i class="fas fa-chart-bar me-2"></i>Rekap Presensi
             </a>
         </div>
@@ -20,7 +20,7 @@
     <!-- Filter -->
     <div class="card-modern mb-4">
         <div class="card-body">
-            <form action="{{ route('presensi.index') }}" method="GET" class="row g-3">
+            <form action="{{ route('admin.presensi.index') }}" method="GET" class="row g-3">
                 <div class="col-md-3">
                     <label class="form-label text-white">Tanggal</label>
                     <input type="date" class="form-control form-control-modern" name="tanggal"
@@ -180,7 +180,7 @@
                                 {{-- Aksi --}}
                                 <td class="text-center">
                                     <div class="btn-group btn-group-sm">
-                                        <a href="{{ route('presensi.show', $item->id_presensi) }}"
+                                        <a href="{{ route('admin.presensi.show', $item->id_presensi) }}"
                                             class="btn btn-info btn-modern" title="Detail">
                                             <i class="fas fa-eye"></i>
                                         </a>

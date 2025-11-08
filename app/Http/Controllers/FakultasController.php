@@ -12,7 +12,7 @@ class FakultasController extends Controller
     public function index()
     {
         $fakultas = Fakultas::all();
-        return view('fakultas.index', compact('fakultas'));
+        return view('admin.fakultas.index', compact('fakultas'));
     }
 
     public function create()
@@ -40,7 +40,7 @@ class FakultasController extends Controller
 
         Fakultas::create($data);
 
-        return redirect()->route('fakultas.index')
+        return redirect()->route('admin.fakultas.index')
             ->with('success', 'Fakultas berhasil ditambahkan.');
     }
 
@@ -76,7 +76,7 @@ public function edit(Fakultas $fakultas)
 
         $fakultas->update($data);
 
-        return redirect()->route('fakultas.index')
+        return redirect()->route('admin.fakultas.index')
             ->with('success', 'Fakultas berhasil diperbarui.');
     }
 
@@ -84,13 +84,13 @@ public function edit(Fakultas $fakultas)
     {
         // Cek apakah fakultas memiliki relasi
         if ($fakultas->departemen()->count() > 0) {
-            return redirect()->route('fakultas.index')
+            return redirect()->route('admin.fakultas.index')
                 ->with('error', 'Tidak dapat menghapus fakultas karena masih memiliki departemen.');
         }
 
         $fakultas->delete();
 
-        return redirect()->route('fakultas.index')
+        return redirect()->route('admin.fakultas.index')
             ->with('success', 'Fakultas berhasil dihapus.');
     }
 }

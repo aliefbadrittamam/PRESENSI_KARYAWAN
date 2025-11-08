@@ -130,7 +130,7 @@
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="text-white mb-0"><i class="fas fa-users me-2"></i>Data Karyawan</h4>
-        <a href="{{ route('karyawan.create') }}" class="btn btn-primary-modern btn-modern">
+        <a href="{{ route('admin.karyawan.create') }}" class="btn btn-primary-modern btn-modern">
             <i class="fas fa-plus-circle me-2"></i>Tambah Karyawan
         </a>
     </div>
@@ -183,11 +183,11 @@
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <a href="{{ route('karyawan.show', $item->id_karyawan) }}"
+                                        <a href="{{ route('admin.karyawan.show', $item->id_karyawan) }}"
                                             class="btn btn-info btn-modern" data-bs-toggle="tooltip" title="Detail">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="{{ route('karyawan.edit', $item->id_karyawan) }}"
+                                        <a href="{{ route('admin.karyawan.edit', $item->id_karyawan) }}"
                                             class="btn btn-warning btn-modern" data-bs-toggle="tooltip" title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
@@ -197,7 +197,7 @@
                                             <i class="fas fa-qrcode"></i>
                                         </button>
 
-                                        <form action="{{ route('karyawan.destroy', $item->id_karyawan) }}" method="POST"
+                                        <form action="{{ route('admin.karyawan.destroy', $item->id_karyawan) }}" method="POST"
                                             class="d-inline">
                                             @csrf
                                             @method('DELETE')
@@ -215,7 +215,7 @@
                                 <td colspan="8" class="text-center py-4">
                                     <i class="fas fa-users fa-3x text-muted mb-3"></i>
                                     <p class="text-muted">Tidak ada data karyawan.</p>
-                                    <a href="{{ route('karyawan.create') }}" class="btn btn-primary-modern btn-modern">
+                                    <a href="{{ route('admin.karyawan.create') }}" class="btn btn-primary-modern btn-modern">
                                         <i class="fas fa-plus me-2"></i>Tambah Karyawan Pertama
                                     </a>
                                 </td>

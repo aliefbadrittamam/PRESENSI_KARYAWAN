@@ -73,14 +73,14 @@
             @endif
             
             <div class="d-flex justify-content-between mt-4 pt-3 border-top">
-                <a href="{{ route('karyawan.index') }}" class="btn btn-secondary btn-modern">
+                <a href="{{ route('admin.karyawan.index') }}" class="btn btn-secondary btn-modern">
                     <i class="fas fa-arrow-left me-2"></i>Kembali
                 </a>
                 <div>
-                    <a href="{{ route('karyawan.edit', $karyawan->id_karyawan) }}" class="btn btn-warning btn-modern me-2">
+                    <a href="{{ route('admin.karyawan.edit', $karyawan->id_karyawan) }}" class="btn btn-warning btn-modern me-2">
                         <i class="fas fa-edit me-2"></i>Edit
                     </a>
-                    <form action="{{ route('karyawan.destroy', $karyawan->id_karyawan) }}" method="POST" class="d-inline">
+                    <form action="{{ route('admin.karyawan.destroy', $karyawan->id_karyawan) }}" method="POST" class="d-inline">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-danger btn-modern" 

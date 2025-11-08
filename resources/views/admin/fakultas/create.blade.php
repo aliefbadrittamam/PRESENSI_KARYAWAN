@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Fakultas')
-@section('icon', 'fa-edit')
+@section('title', 'Tambah Fakultas')
+@section('icon', 'fa-plus-circle')
 
 @section('content')
 <div class="row">
@@ -9,23 +9,21 @@
         <div class="card-modern">
             <div class="card-header bg-dark-blue">
                 <h5 class="text-white mb-0">
-                    <i class="fas fa-edit me-2"></i>Edit Data Fakultas
+                    <i class="fas fa-plus-circle me-2"></i>Tambah Fakultas Baru
                 </h5>
             </div>
             <div class="card-body">
-<form action="{{ route('fakultas.update', $fakultas) }}" method="POST">
-
+                <form action="{{ route('admin.fakultas.store') }}" method="POST">
                     @csrf
-                    @method('PUT')
                     
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="kode_fakultas" class="form-label text-white">Kode Fakultas *</label>
                                 <input type="text" class="form-control form-control-modern @error('kode_fakultas') is-invalid @enderror" 
-                                       id="kode_fakultas" name="kode_fakultas" 
-                                       value="{{ old('kode_fakultas', $fakultas->kode_fakultas) }}" required>
-                                <div class="form-text text-muted">Kode unik untuk fakultas</div>
+                                       id="kode_fakultas" name="kode_fakultas" value="{{ old('kode_fakultas') }}" 
+                                       placeholder="Contoh: FIT, FEB, FIK" required>
+                                <div class="form-text text-muted">Kode unik untuk fakultas (max: 10 karakter)</div>
                                 @error('kode_fakultas')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -34,8 +32,8 @@
                             <div class="mb-3">
                                 <label for="nama_fakultas" class="form-label text-white">Nama Fakultas *</label>
                                 <input type="text" class="form-control form-control-modern @error('nama_fakultas') is-invalid @enderror" 
-                                       id="nama_fakultas" name="nama_fakultas" 
-                                       value="{{ old('nama_fakultas', $fakultas->nama_fakultas) }}" required>
+                                       id="nama_fakultas" name="nama_fakultas" value="{{ old('nama_fakultas') }}" 
+                                       placeholder="Contoh: Fakultas Ilmu Komputer" required>
                                 @error('nama_fakultas')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -46,8 +44,7 @@
                             <div class="mb-3">
                                 <label for="dekan" class="form-label text-white">Dekan</label>
                                 <input type="text" class="form-control form-control-modern @error('dekan') is-invalid @enderror" 
-                                       id="dekan" name="dekan" 
-                                       value="{{ old('dekan', $fakultas->dekan) }}" 
+                                       id="dekan" name="dekan" value="{{ old('dekan') }}" 
                                        placeholder="Nama Dekan saat ini">
                                 @error('dekan')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -57,34 +54,28 @@
                             <div class="mb-3">
                                 <label class="form-label text-white">Status</label>
                                 <div class="form-check form-switch">
-                                    <input type="checkbox" class="form-check-input" id="status_aktif" name="status_aktif" value="1" 
-                                        {{ old('status_aktif', $fakultas->status_aktif) ? 'checked' : '' }}>
+                                    <input type="checkbox" class="form-check-input" id="status_aktif" name="status_aktif" value="1" checked>
                                     <label class="form-check-label text-white" for="status_aktif">Fakultas Aktif</label>
                                 </div>
-                                <div class="form-text text-muted">
-                                    @if(!$fakultas->status_aktif)
-                                        <i class="fas fa-exclamation-triangle text-warning me-1"></i>
-                                        Fakultas saat ini non-aktif
-                                    @endif
-                                </div>
+                                <div class="form-text text-muted">Non-aktifkan jika fakultas sudah tidak beroperasi</div>
                             </div>
 
-                            <!-- Statistics -->
+                            <!-- Statistics Preview -->
                             <div class="card-modern p-3 mt-3">
-                                <h6 class="text-primary mb-3"><i class="fas fa-chart-bar me-2"></i>Statistik Saat Ini</h6>
+                                <h6 class="text-primary mb-3"><i class="fas fa-chart-bar me-2"></i>Informasi</h6>
                                 <div class="row text-center">
                                     <div class="col-6">
                                         <div class="text-primary">
                                             <i class="fas fa-building fa-2x mb-2"></i>
-                                            <p class="mb-0 small">Departemen</p>
-                                            <h5 class="mb-0">{{ $fakultas->departemen->count() }}</h5>
+                                            <p class="mb-0">Departemen</p>
+                                            <h5 class="mb-0">0</h5>
                                         </div>
                                     </div>
                                     <div class="col-6">
                                         <div class="text-success">
                                             <i class="fas fa-users fa-2x mb-2"></i>
-                                            <p class="mb-0 small">Karyawan</p>
-                                            <h5 class="mb-0">{{ $fakultas->karyawan->count() }}</h5>
+                                            <p class="mb-0">Karyawan</p>
+                                            <h5 class="mb-0">0</h5>
                                         </div>
                                     </div>
                                 </div>
@@ -92,27 +83,13 @@
                         </div>
                     </div>
 
-                    <!-- Warning if has relations -->
-                    @if($fakultas->departemen->count() > 0 && !$fakultas->status_aktif)
-                    <div class="alert alert-warning mt-3">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        <strong>Peringatan:</strong> Fakultas ini memiliki {{ $fakultas->departemen->count() }} departemen dan 
-                        {{ $fakultas->karyawan->count() }} karyawan. Menonaktifkan fakultas akan mempengaruhi data terkait.
-                    </div>
-                    @endif
-
                     <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-                        <a href="{{ route('fakultas.index') }}" class="btn btn-secondary btn-modern">
+                        <a href="{{ route('admin.fakultas.index') }}" class="btn btn-secondary btn-modern">
                             <i class="fas fa-arrow-left me-2"></i>Kembali
                         </a>
-                        <div>
-                            <a href="{{ route('fakultas.show', $fakultas->id_fakultas) }}" class="btn btn-info btn-modern me-2">
-                                <i class="fas fa-eye me-2"></i>Lihat Detail
-                            </a>
-                            <button type="submit" class="btn btn-primary-modern btn-modern">
-                                <i class="fas fa-save me-2"></i>Update Fakultas
-                            </button>
-                        </div>
+                        <button type="submit" class="btn btn-primary-modern btn-modern">
+                            <i class="fas fa-save me-2"></i>Simpan Fakultas
+                        </button>
                     </div>
                 </form>
             </div>
@@ -133,20 +110,6 @@
         this.value = this.value.replace(/\w\S*/g, function(txt) {
             return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
         });
-    });
-
-    // Show warning when deactivating faculty with relations
-    document.getElementById('status_aktif').addEventListener('change', function() {
-        if (!this.checked) {
-            const departemenCount = {{ $fakultas->departemen->count() }};
-            const karyawanCount = {{ $fakultas->karyawan->count() }};
-            
-            if (departemenCount > 0 || karyawanCount > 0) {
-                if (!confirm('Fakultas ini memiliki ' + departemenCount + ' departemen dan ' + karyawanCount + ' karyawan. Yakin ingin menonaktifkan?')) {
-                    this.checked = true;
-                }
-            }
-        }
     });
 </script>
 @endpush

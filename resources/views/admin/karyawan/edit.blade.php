@@ -13,7 +13,7 @@
                 </h5>
             </div>
             <div class="card-body">
-                <form action="{{ route('karyawan.update', $karyawan->id_karyawan) }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('admin.karyawan.update', $karyawan->id_karyawan) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     
@@ -242,11 +242,11 @@
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-                        <a href="{{ route('karyawan.index') }}" class="btn btn-secondary btn-modern">
+                        <a href="{{ route('admin.karyawan.index') }}" class="btn btn-secondary btn-modern">
                             <i class="fas fa-arrow-left me-2"></i>Kembali
                         </a>
                         <div>
-                            <a href="{{ route('karyawan.show', $karyawan->id_karyawan) }}" class="btn btn-info btn-modern me-2">
+                            <a href="{{ route('admin.karyawan.show', $karyawan->id_karyawan) }}" class="btn btn-info btn-modern me-2">
                                 <i class="fas fa-eye me-2"></i>Lihat Detail
                             </a>
                             <button type="submit" class="btn btn-primary-modern btn-modern">

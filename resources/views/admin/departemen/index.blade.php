@@ -6,7 +6,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="text-white mb-0"><i class="fas fa-building me-2"></i>Data Departemen</h4>
-    <a href="{{ route('departemen.create') }}" class="btn btn-primary-modern btn-modern">
+    <a href="{{ route('admin.departemen.create') }}" class="btn btn-primary-modern btn-modern">
         <i class="fas fa-plus-circle me-2"></i>Tambah Departemen
     </a>
 </div>
@@ -61,15 +61,15 @@
                         </td>
                         <td>
                             <div class="btn-group btn-group-sm" role="group">
-                                <a href="{{ route('departemen.show', $item->id_departemen) }}" 
+                                <a href="{{ route('admin.departemen.show', $item->id_departemen) }}" 
                                    class="btn btn-info btn-modern" data-bs-toggle="tooltip" title="Detail">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                <a href="{{ route('departemen.edit', $item->id_departemen) }}" 
+                                <a href="{{ route('admin.departemen.edit', $item->id_departemen) }}" 
                                    class="btn btn-warning btn-modern" data-bs-toggle="tooltip" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form action="{{ route('departemen.destroy', $item->id_departemen) }}" method="POST" class="d-inline">
+                                <form action="{{ route('admin.departemen.destroy', $item->id_departemen) }}" method="POST" class="d-inline">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger btn-modern" 
@@ -86,7 +86,7 @@
                         <td colspan="7" class="text-center py-4">
                             <i class="fas fa-building fa-3x text-muted mb-3"></i>
                             <p class="text-muted">Tidak ada data departemen.</p>
-                            <a href="{{ route('departemen.create') }}" class="btn btn-primary-modern btn-modern">
+                            <a href="{{ route('admin.departemen.create') }}" class="btn btn-primary-modern btn-modern">
                                 <i class="fas fa-plus me-2"></i>Tambah Departemen Pertama
                             </a>
                         </td>

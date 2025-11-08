@@ -18,7 +18,7 @@ class KaryawanController extends Controller
     public function index()
     {
         $karyawan = Karyawan::with(['jabatan', 'departemen', 'fakultas'])->paginate(10);
-        return view('karyawan.index', compact('karyawan'));
+        return view('admin.karyawan.index', compact('karyawan'));
     }
 
     public function create()
@@ -89,7 +89,7 @@ class KaryawanController extends Controller
         // ✅ 4. Simpan data karyawan
         Karyawan::create($data);
 
-        return redirect()->route('karyawan.index')->with('success', 'Karyawan berhasil ditambahkan dan barcode token telah dihasilkan.');
+        return redirect()->route('admin.karyawan.index')->with('success', 'Karyawan berhasil ditambahkan dan barcode token telah dihasilkan.');
     }
 
     public function show(Karyawan $karyawan)
@@ -155,7 +155,7 @@ class KaryawanController extends Controller
 
         $karyawan->update($data);
 
-        return redirect()->route('karyawan.index')->with('success', 'Data karyawan berhasil diperbarui.');
+        return redirect()->route('admin.karyawan.index')->with('success', 'Data karyawan berhasil diperbarui.');
     }
 
     public function destroy(Karyawan $karyawan): RedirectResponse
@@ -167,6 +167,6 @@ class KaryawanController extends Controller
 
         $karyawan->delete();
 
-        return redirect()->route('karyawan.index')->with('success', 'Karyawan berhasil dihapus.');
+        return redirect()->route('admin.karyawan.index')->with('success', 'Karyawan berhasil dihapus.');
     }
 }

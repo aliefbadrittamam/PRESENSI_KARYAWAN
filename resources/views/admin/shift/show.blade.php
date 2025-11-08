@@ -137,7 +137,7 @@
                                 <tr>
                                     <td>{{ $presensi->tanggal_presensi->format('d/m') }}</td>
                                     <td>
-                                        <a href="{{ route('karyawan.show', $presensi->id_karyawan) }}" class="text-white text-decoration-none">
+                                        <a href="{{ route('admin.karyawan.show', $presensi->id_karyawan) }}" class="text-white text-decoration-none">
                                             {{ $presensi->karyawan->nama_lengkap }}
                                         </a>
                                     </td>
@@ -163,7 +163,7 @@
                     </div>
                     @if($shift->presensi->count() > 5)
                     <div class="text-center mt-2">
-                        <a href="{{ route('presensi.index') }}?shift={{ $shift->id_shift }}" class="btn btn-sm btn-primary-modern">
+                        <a href="{{ route('admin.presensi.index') }}?shift={{ $shift->id_shift }}" class="btn btn-sm btn-primary-modern">
                             Lihat Semua Presensi
                         </a>
                     </div>
@@ -177,15 +177,15 @@
             </div>
             
             <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-                <a href="{{ route('shift.index') }}" class="btn btn-secondary btn-modern">
+                <a href="{{ route('admin.shift.index') }}" class="btn btn-secondary btn-modern">
                     <i class="fas fa-arrow-left me-2"></i>Kembali ke Daftar
                 </a>
                 <div>
-                    <a href="{{ route('shift.edit', $shift->id_shift) }}" class="btn btn-warning btn-modern me-2">
+                    <a href="{{ route('admin.shift.edit', $shift->id_shift) }}" class="btn btn-warning btn-modern me-2">
                         <i class="fas fa-edit me-2"></i>Edit
                     </a>
                     @if($shift->presensi->count() == 0)
-                    <form action="{{ route('shift.destroy', $shift->id_shift) }}" method="POST" class="d-inline">
+                    <form action="{{ route('admin.shift.destroy', $shift->id_shift) }}" method="POST" class="d-inline">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-danger btn-modern" 

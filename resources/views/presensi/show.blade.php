@@ -302,7 +302,7 @@
             @endif
             
             <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-                <a href="{{ route('presensi.index') }}" class="btn btn-secondary btn-modern">
+                <a href="{{ route('admin.presensi.index') }}" class="btn btn-secondary btn-modern">
                     <i class="fas fa-arrow-left me-2"></i>Kembali ke Daftar
                 </a>
                 <div>

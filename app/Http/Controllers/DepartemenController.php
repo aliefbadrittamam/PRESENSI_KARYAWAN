@@ -12,7 +12,7 @@ class DepartemenController extends Controller
     public function index()
     {
         $departemen = Departemen::with('fakultas')->get();
-        return view('departemen.index', compact('departemen'));
+        return view('admin.departemen.index', compact('departemen'));
     }
 
     public function create()
@@ -39,7 +39,7 @@ class DepartemenController extends Controller
 
         Departemen::create($request->all());
 
-        return redirect()->route('departemen.index')
+        return redirect()->route('admin.admin.departemen.index')
             ->with('success', 'Departemen berhasil ditambahkan.');
     }
 
@@ -73,20 +73,20 @@ class DepartemenController extends Controller
 
         $departemen->update($request->all());
 
-        return redirect()->route('departemen.index')
+        return redirect()->route('admin.admin.departemen.index')
             ->with('success', 'Departemen berhasil diperbarui.');
     }
 
     public function destroy(Departemen $departemen)
     {
         if ($departemen->karyawan()->count() > 0) {
-            return redirect()->route('departemen.index')
+            return redirect()->route('admin.departemen.index')
                 ->with('error', 'Tidak dapat menghapus departemen karena masih memiliki karyawan.');
         }
 
         $departemen->delete();
 
-        return redirect()->route('departemen.index')
+        return redirect()->route('admin.departemen.index')
             ->with('success', 'Departemen berhasil dihapus.');
     }
 }

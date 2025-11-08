@@ -141,7 +141,7 @@
                     <div class="text-center py-4">
                         <i class="fas fa-building fa-3x text-muted mb-3"></i>
                         <p class="text-muted">Belum ada departemen di fakultas ini.</p>
-                        <a href="{{ route('departemen.create') }}" class="btn btn-primary-modern btn-sm">
+                        <a href="{{ route('admin.departemen.create') }}" class="btn btn-primary-modern btn-sm">
                             <i class="fas fa-plus me-2"></i>Tambah Departemen
                         </a>
                     </div>
@@ -149,15 +149,15 @@
             </div>
             
             <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-                <a href="{{ route('fakultas.index') }}" class="btn btn-secondary btn-modern">
+                <a href="{{ route('admin.fakultas.index') }}" class="btn btn-secondary btn-modern">
                     <i class="fas fa-arrow-left me-2"></i>Kembali ke Daftar
                 </a>
                 <div>
-                    <a href="{{ route('fakultas.edit', $fakultas->id_fakultas) }}" class="btn btn-warning btn-modern me-2">
+                    <a href="{{ route('admin.fakultas.edit', $fakultas->id_fakultas) }}" class="btn btn-warning btn-modern me-2">
                         <i class="fas fa-edit me-2"></i>Edit
                     </a>
                     @if($fakultas->departemen->count() == 0)
-                    <form action="{{ route('fakultas.destroy', $fakultas->id_fakultas) }}" method="POST" class="d-inline">
+                    <form action="{{ route('admin.fakultas.destroy', $fakultas->id_fakultas) }}" method="POST" class="d-inline">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-danger btn-modern" 

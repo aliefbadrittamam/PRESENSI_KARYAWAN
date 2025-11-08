@@ -13,7 +13,7 @@
                 </h5>
             </div>
             <div class="card-body">
-                <form action="{{ route('jabatan.store') }}" method="POST">
+                <form action="{{ route('admin.jabatan.store') }}" method="POST">
                     @csrf
 
                     <div class="row">
@@ -74,7 +74,7 @@
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-                        <a href="{{ route('jabatan.index') }}" class="btn btn-secondary btn-modern">
+                        <a href="{{ route('admin.jabatan.index') }}" class="btn btn-secondary btn-modern">
                             <i class="fas fa-arrow-left me-2"></i>Kembali
                         </a>
                         <button type="submit" class="btn btn-primary-modern btn-modern">

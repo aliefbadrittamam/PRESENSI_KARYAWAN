@@ -304,7 +304,7 @@
             color: #fff;
         }
 
-        <style>.dark-mode .main-header.navbar {
+        .dark-mode .main-header.navbar {
             background-color: #2f3237 !important;
             border-bottom: 1px solid #3a3d41 !important;
         }
@@ -334,8 +334,6 @@
         }
     </style>
 
-    </style>
-
     @stack('css')
 </head>
 
@@ -358,7 +356,7 @@
                     </a>
                 </li>
                 <li class="nav-item d-none d-sm-inline-block">
-                    <a href="{{ route('home') }}" class="nav-link">Home</a>
+                    <a href="{{ route('admin.dashboard') }}" class="nav-link">Home</a>
                 </li>
             </ul>
 
@@ -436,7 +434,7 @@
         <!-- Main Sidebar Container -->
         <aside class="main-sidebar sidebar-dark-primary elevation-4">
             <!-- Brand Logo -->
-            <a href="{{ route('home') }}" class="brand-link">
+            <a href="{{ route('admin.dashboard') }}" class="brand-link">
                 <i class="fas fa-fingerprint brand-image img-circle elevation-3"></i>
                 <span class="brand-text font-weight-light">Presensi UNI</span>
             </a>
@@ -463,8 +461,8 @@
                         data-accordion="false">
                         <!-- Dashboard -->
                         <li class="nav-item">
-                            <a href="{{ route('home') }}"
-                                class="nav-link {{ Request::is('home') || Request::is('dashboard') ? 'active' : '' }}">
+                            <a href="{{ route('admin.dashboard') }}"
+                                class="nav-link {{ Request::is('admin/dashboard') || Request::is('admin/home') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-tachometer-alt"></i>
                                 <p>Dashboard</p>
                             </a>
@@ -472,9 +470,9 @@
 
                         <!-- Master Data -->
                         <li
-                            class="nav-item {{ Request::is('fakultas*', 'departemen*', 'jabatan*', 'karyawan*') ? 'menu-open' : '' }}">
+                            class="nav-item {{ Request::is('admin/fakultas*', 'admin/departemen*', 'admin/jabatan*', 'admin/karyawan*') ? 'menu-open' : '' }}">
                             <a href="#"
-                                class="nav-link {{ Request::is('fakultas*', 'departemen*', 'jabatan*', 'karyawan*') ? 'active' : '' }}">
+                                class="nav-link {{ Request::is('admin/fakultas*', 'admin/departemen*', 'admin/jabatan*', 'admin/karyawan*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-database"></i>
                                 <p>
                                     Master Data
@@ -483,29 +481,29 @@
                             </a>
                             <ul class="nav nav-treeview">
                                 <li class="nav-item">
-                                    <a href="{{ route('fakultas.index') }}"
-                                        class="nav-link {{ Request::is('fakultas*') ? 'active' : '' }}">
+                                    <a href="{{ route('admin.fakultas.index') }}"
+                                        class="nav-link {{ Request::is('admin/fakultas*') ? 'active' : '' }}">
                                         <i class="nav-icon fas fa-university"></i>
                                         <p>Fakultas</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ route('departemen.index') }}"
-                                        class="nav-link {{ Request::is('departemen*') ? 'active' : '' }}">
+                                    <a href="{{ route('admin.departemen.index') }}"
+                                        class="nav-link {{ Request::is('admin/departemen*') ? 'active' : '' }}">
                                         <i class="nav-icon fas fa-building"></i>
                                         <p>Departemen</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ route('jabatan.index') }}"
-                                        class="nav-link {{ Request::is('jabatan*') ? 'active' : '' }}">
+                                    <a href="{{ route('admin.jabatan.index') }}"
+                                        class="nav-link {{ Request::is('admin/jabatan*') ? 'active' : '' }}">
                                         <i class="nav-icon fas fa-briefcase"></i>
                                         <p>Jabatan</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ route('karyawan.index') }}"
-                                        class="nav-link {{ Request::is('karyawan*') ? 'active' : '' }}">
+                                    <a href="{{ route('admin.karyawan.index') }}"
+                                        class="nav-link {{ Request::is('admin/karyawan*') ? 'active' : '' }}">
                                         <i class="nav-icon fas fa-users"></i>
                                         <p>Karyawan</p>
                                     </a>
@@ -514,8 +512,8 @@
                         </li>
 
                         <!-- Presensi -->
-                        <li class="nav-item {{ Request::is('presensi*') ? 'menu-open' : '' }}">
-                            <a href="#" class="nav-link {{ Request::is('presensi*') ? 'active' : '' }}">
+                        <li class="nav-item {{ Request::is('admin/presensi*', 'admin/lokasi-presensi*') ? 'menu-open' : '' }}">
+                            <a href="#" class="nav-link {{ Request::is('admin/presensi*', 'admin/lokasi-presensi*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-calendar-check"></i>
                                 <p>
                                     Presensi
@@ -523,13 +521,6 @@
                                 </p>
                             </a>
                             <ul class="nav nav-treeview">
-                                {{-- <li class="nav-item">
-                                    <a href="{{ route('presensi.index') }}"
-                                        class="nav-link {{ Request::is('user/presensi') && !Request::is('user/presensi/*') ? 'active' : '' }}">
-                                        <i class="nav-icon fas fa-camera text-primary"></i>
-                                        <p>Absen Sekarang</p>
-                                    </a>
-                                </li> --}}
                                 <li class="nav-item">
                                     <a href="{{ route('admin.lokasi-presensi.index') }}"
                                         class="nav-link {{ Request::is('admin/lokasi-presensi*') ? 'active' : '' }}">
@@ -539,15 +530,13 @@
                                 </li>
                                 <li class="nav-item">
                                     <a href="{{ route('admin.presensi.index') }}"
-                                        class="nav-link {{ Request::is('presensi/rekap') ? 'active' : '' }}">
+                                        class="nav-link {{ Request::is('admin/presensi*') ? 'active' : '' }}">
                                         <i class="nav-icon fas fa-chart-bar text-info"></i>
                                         <p>Rekap Presensi</p>
                                     </a>
                                 </li>
                             </ul>
                         </li>
-
-                        <!-- Tambahkan menu ini di sidebar setelah menu Presensi -->
 
                         <!-- Pengajuan Izin & Cuti -->
                         <li class="nav-item">
@@ -569,9 +558,9 @@
                         </li>
 
                         <!-- Konfigurasi -->
-                        <li class="nav-item {{ Request::is('shift*', 'lokasi*') ? 'menu-open' : '' }}">
+                        <li class="nav-item {{ Request::is('admin/shift*') ? 'menu-open' : '' }}">
                             <a href="#"
-                                class="nav-link {{ Request::is('shift*', 'lokasi*') ? 'active' : '' }}">
+                                class="nav-link {{ Request::is('admin/shift*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-cogs"></i>
                                 <p>
                                     Konfigurasi
@@ -580,19 +569,12 @@
                             </a>
                             <ul class="nav nav-treeview">
                                 <li class="nav-item">
-                                    <a href="{{ route('shift.index') }}"
-                                        class="nav-link {{ Request::is('shift*') ? 'active' : '' }}">
+                                    <a href="{{ route('admin.shift.index') }}"
+                                        class="nav-link {{ Request::is('admin/shift*') ? 'active' : '' }}">
                                         <i class="nav-icon fas fa-clock"></i>
                                         <p>Shift Kerja</p>
                                     </a>
                                 </li>
-                                {{-- <li class="nav-item">
-                                    <a href="{{ route('lokasi.index') }}"
-                                        class="nav-link {{ Request::is('lokasi*') ? 'active' : '' }}">
-                                        <i class="nav-icon fas fa-map-marker-alt"></i>
-                                        <p>Lokasi Presensi</p>
-                                    </a>
-                                </li> --}}
                             </ul>
                         </li>
                     </ul>
@@ -640,7 +622,7 @@
                         </div><!-- /.col -->
                         <div class="col-sm-6">
                             <ol class="breadcrumb float-sm-right">
-                                <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Home</a></li>
                                 <li class="breadcrumb-item active">@yield('title', 'Dashboard')</li>
                             </ol>
                         </div><!-- /.col -->

@@ -41,10 +41,10 @@
                 </div>
 
                 <div class="d-flex justify-content-between mt-4 pt-3 border-top">
-                    <a href="{{ route('jabatan.index') }}" class="btn btn-secondary btn-modern">
+                    <a href="{{ route('admin.jabatan.index') }}" class="btn btn-secondary btn-modern">
                         <i class="fas fa-arrow-left me-2"></i>Kembali
                     </a>
-                    <a href="{{ route('jabatan.edit', $jabatan->id_jabatan) }}" class="btn btn-warning btn-modern">
+                    <a href="{{ route('admin.jabatan.edit', $jabatan->id_jabatan) }}" class="btn btn-warning btn-modern">
                         <i class="fas fa-edit me-2"></i>Edit
                     </a>
                 </div>

@@ -63,7 +63,6 @@ Route::middleware(['auth'])->group(function () {
     // DASHBOARD KARYAWAN
     Route::get('/dashboard', [KaryawanDashboardController::class, 'index'])->name('karyawan.dashboard');
     Route::get('/user/dashboard', [KaryawanDashboardController::class, 'index'])->name('user.dashboard');
-    Route::get('/profile', [KaryawanDashboardController::class, 'profile'])->name('karyawan.profile');
 
     // PRESENSI - USER (KaryawanPresensiController)
     Route::prefix('user/presensi')
@@ -101,6 +100,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/', [CutiController::class, 'store'])->name('store');
             Route::get('/{id}', [CutiController::class, 'show'])->name('show');
         });
+
     // PROFILE
     Route::get('/profile', [KaryawanDashboardController::class, 'profile'])->name('karyawan.profile');
     Route::post('/profile/password', [KaryawanDashboardController::class, 'updatePassword'])->name('karyawan.update-password');
@@ -113,59 +113,58 @@ Route::middleware(['auth'])->group(function () {
 | PROTECTED ROUTES - ADMIN
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth'])->group(function () {
-    // DASHBOARD ADMIN
-    Route::get('/home', [HomeController::class, 'index'])->name('home');
+Route::middleware(['auth'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        // DASHBOARD ADMIN
+        Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
+        
+        // Redirect /home ke /admin/dashboard untuk backward compatibility
+        Route::redirect('/home', '/admin/dashboard');
 
-    // MASTER DATA
-    Route::resource('fakultas', FakultasController::class)->parameters(['fakultas' => 'fakultas']);
-    Route::resource('departemen', DepartemenController::class);
-    Route::resource('jabatan', JabatanController::class);
-    Route::resource('karyawan', KaryawanController::class);
-    Route::resource('shift', ShiftController::class);
-    // Route::resource('lokasi', LokasiPresensiController::class);
+        // MASTER DATA
+        Route::resource('fakultas', FakultasController::class)->parameters(['fakultas' => 'fakultas']);
+        Route::resource('departemen', DepartemenController::class);
+        Route::resource('jabatan', JabatanController::class);
+        Route::resource('karyawan', KaryawanController::class);
+        Route::resource('shift', ShiftController::class);
 
-    // PRESENSI - ADMIN (PresensiController)
-    Route::prefix('presensi')
-        ->name('admin.presensi.')
-        ->group(function () {
-            Route::get('/', [PresensiController::class, 'index'])->name('index');
-            Route::get('/rekap', [PresensiController::class, 'rekap'])->name('rekap');
-            Route::get('/rekap/download-pdf', [PresensiController::class, 'downloadPdf'])->name('download-pdf');
-            Route::get('/{id}', [PresensiController::class, 'show'])->name('show');
-        });
+        // PRESENSI - ADMIN (PresensiController)
+        Route::prefix('presensi')
+            ->name('presensi.')
+            ->group(function () {
+                Route::get('/', [PresensiController::class, 'index'])->name('index');
+                Route::get('/rekap', [PresensiController::class, 'rekap'])->name('rekap');
+                Route::get('/rekap/download-pdf', [PresensiController::class, 'downloadPdf'])->name('download-pdf');
+                Route::get('/{id}', [PresensiController::class, 'show'])->name('show');
+            });
 
-    Route::prefix('admin/pengajuan')
-        ->name('admin.pengajuan.')
-        ->group(function () {
-            // List all pengajuan
-            Route::get('/', [App\Http\Controllers\Admin\PengajuanController::class, 'index'])->name('index');
+        // PENGAJUAN (IZIN & CUTI)
+        Route::prefix('pengajuan')
+            ->name('pengajuan.')
+            ->group(function () {
+                // List all pengajuan
+                Route::get('/', [App\Http\Controllers\Admin\PengajuanController::class, 'index'])->name('index');
 
-            // Detail
-            Route::get('/izin/{id}', [App\Http\Controllers\Admin\PengajuanController::class, 'showIzin'])->name('show-izin');
-            Route::get('/cuti/{id}', [App\Http\Controllers\Admin\PengajuanController::class, 'showCuti'])->name('show-cuti');
+                // Detail
+                Route::get('/izin/{id}', [App\Http\Controllers\Admin\PengajuanController::class, 'showIzin'])->name('show-izin');
+                Route::get('/cuti/{id}', [App\Http\Controllers\Admin\PengajuanController::class, 'showCuti'])->name('show-cuti');
 
-            // Approve
-            Route::post('/izin/{id}/approve', [App\Http\Controllers\Admin\PengajuanController::class, 'approveIzin'])->name('approve-izin');
-            Route::post('/cuti/{id}/approve', [App\Http\Controllers\Admin\PengajuanController::class, 'approveCuti'])->name('approve-cuti');
+                // Approve
+                Route::post('/izin/{id}/approve', [App\Http\Controllers\Admin\PengajuanController::class, 'approveIzin'])->name('approve-izin');
+                Route::post('/cuti/{id}/approve', [App\Http\Controllers\Admin\PengajuanController::class, 'approveCuti'])->name('approve-cuti');
 
-            // Reject
-            Route::post('/izin/{id}/reject', [App\Http\Controllers\Admin\PengajuanController::class, 'rejectIzin'])->name('reject-izin');
-            Route::post('/cuti/{id}/reject', [App\Http\Controllers\Admin\PengajuanController::class, 'rejectCuti'])->name('reject-cuti');
-        });
+                // Reject
+                Route::post('/izin/{id}/reject', [App\Http\Controllers\Admin\PengajuanController::class, 'rejectIzin'])->name('reject-izin');
+                Route::post('/cuti/{id}/reject', [App\Http\Controllers\Admin\PengajuanController::class, 'rejectCuti'])->name('reject-cuti');
+            });
 
-    Route::middleware(['auth'])
-        ->prefix('admin')
-        ->name('admin.')
-        ->group(function () {
-            // ... routes lainnya ...
+        // LOKASI PRESENSI - CRUD
+        Route::resource('lokasi-presensi', App\Http\Controllers\Admin\LokasiPresensiController::class, [
+            'parameters' => ['lokasi-presensi' => 'id'],
+        ]);
 
-            // LOKASI PRESENSI - CRUD
-            Route::resource('lokasi-presensi', App\Http\Controllers\Admin\LokasiPresensiController::class, [
-                'parameters' => ['lokasi-presensi' => 'id'],
-            ]);
-
-            // Get coordinates (AJAX)
-            Route::post('lokasi-presensi/get-coordinates', [App\Http\Controllers\Admin\LokasiPresensiController::class, 'getCoordinates'])->name('lokasi-presensi.get-coordinates');
-        });
-});
+        // Get coordinates (AJAX)
+        Route::post('lokasi-presensi/get-coordinates', [App\Http\Controllers\Admin\LokasiPresensiController::class, 'getCoordinates'])->name('lokasi-presensi.get-coordinates');
+    });

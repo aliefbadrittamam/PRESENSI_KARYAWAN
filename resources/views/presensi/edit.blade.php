@@ -198,11 +198,11 @@
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-                        <a href="{{ route('presensi.index') }}" class="btn btn-secondary btn-modern">
+                        <a href="{{ route('admin.presensi.index') }}" class="btn btn-secondary btn-modern">
                             <i class="fas fa-arrow-left me-2"></i>Kembali
                         </a>
                         <div>
-                            <a href="{{ route('presensi.show', $presensi->id_presensi) }}" class="btn btn-info btn-modern me-2">
+                            <a href="{{ route('admin.presensi.show', $presensi->id_presensi) }}" class="btn btn-info btn-modern me-2">
                                 <i class="fas fa-eye me-2"></i>Lihat Detail
                             </a>
                             <button type="submit" class="btn btn-primary-modern btn-modern">

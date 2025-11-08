@@ -5,7 +5,7 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h4>📋 Data Jabatan</h4>
-            <a href="{{ route('jabatan.create') }}" class="btn btn-primary btn-sm">
+            <a href="{{ route('admin.jabatan.create') }}" class="btn btn-primary btn-sm">
                 <i class="fas fa-plus"></i> Tambah Jabatan
             </a>
         </div>
@@ -31,10 +31,10 @@
                             <td>{{ ucfirst($item->jenis_jabatan) }}</td>
                             <td>{{ $item->keterangan ?? '-' }}</td>
                             <td class="text-center">
-                                <a href="{{ route('jabatan.edit', $item->id_jabatan) }}" class="btn btn-warning btn-sm">
+                                <a href="{{ route('admin.jabatan.edit', $item->id_jabatan) }}" class="btn btn-warning btn-sm">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form action="{{ route('jabatan.destroy', $item->id_jabatan) }}" method="POST" class="d-inline"
+                                <form action="{{ route('admin.jabatan.destroy', $item->id_jabatan) }}" method="POST" class="d-inline"
                                     onsubmit="return confirm('Yakin ingin menghapus jabatan ini?')">
                                     @csrf
                                     @method('DELETE')

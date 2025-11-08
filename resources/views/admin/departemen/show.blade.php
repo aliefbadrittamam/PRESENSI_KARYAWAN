@@ -142,7 +142,7 @@
                                 <tr>
                                     <td>{{ $karyawan->nip }}</td>
                                     <td>
-                                        <a href="{{ route('karyawan.show', $karyawan->id_karyawan) }}" class="text-white text-decoration-none">
+                                        <a href="{{ route('admin.karyawan.show', $karyawan->id_karyawan) }}" class="text-white text-decoration-none">
                                             {{ $karyawan->nama_lengkap }}
                                         </a>
                                     </td>
@@ -168,15 +168,15 @@
             </div>
             
             <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-                <a href="{{ route('departemen.index') }}" class="btn btn-secondary btn-modern">
+                <a href="{{ route('admin.departemen.index') }}" class="btn btn-secondary btn-modern">
                     <i class="fas fa-arrow-left me-2"></i>Kembali ke Daftar
                 </a>
                 <div>
-                    <a href="{{ route('departemen.edit', $departemen->id_departemen) }}" class="btn btn-warning btn-modern me-2">
+                    <a href="{{ route('admin.departemen.edit', $departemen->id_departemen) }}" class="btn btn-warning btn-modern me-2">
                         <i class="fas fa-edit me-2"></i>Edit
                     </a>
                     @if($departemen->karyawan->count() == 0)
-                    <form action="{{ route('departemen.destroy', $departemen->id_departemen) }}" method="POST" class="d-inline">
+                    <form action="{{ route('admin.departemen.destroy', $departemen->id_departemen) }}" method="POST" class="d-inline">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-danger btn-modern" 

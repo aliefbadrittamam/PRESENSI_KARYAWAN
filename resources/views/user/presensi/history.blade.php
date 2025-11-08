@@ -63,7 +63,7 @@
                                         {{ ucfirst($item->status_kehadiran) }}
                                     </span>
                                 </div>
-                                <a href="{{ route('presensi.show', $item->id_presensi) }}" class="btn btn-sm btn-outline-primary">
+                                <a href="{{ route('admin.presensi.show', $item->id_presensi) }}" class="btn btn-sm btn-outline-primary">
                                     <i class="fas fa-eye"></i>
                                 </a>
                             </div>
@@ -114,7 +114,7 @@
                 <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
                 <h5>Belum Ada Data</h5>
                 <p class="text-muted">Belum ada riwayat presensi untuk bulan ini</p>
-                <a href="{{ route('presensi.index') }}" class="btn btn-primary mt-3">
+                <a href="{{ route('admin.presensi.index') }}" class="btn btn-primary mt-3">
                     <i class="fas fa-camera me-2"></i>
                     Absen Sekarang
                 </a>

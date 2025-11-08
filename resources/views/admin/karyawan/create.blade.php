@@ -13,7 +13,7 @@
                 </h5>
             </div>
             <div class="card-body">
-                <form action="{{ route('karyawan.store') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('admin.karyawan.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     
                     <div class="row">
@@ -170,7 +170,7 @@
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-                        <a href="{{ route('karyawan.index') }}" class="btn btn-secondary btn-modern">
+                        <a href="{{ route('admin.karyawan.index') }}" class="btn btn-secondary btn-modern">
                             <i class="fas fa-arrow-left me-2"></i>Kembali
                         </a>
                         <button type="submit" class="btn btn-primary-modern btn-modern">

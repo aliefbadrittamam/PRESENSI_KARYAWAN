@@ -11,7 +11,7 @@ class JabatanController extends Controller
     public function index()
     {
          $jabatan = Jabatan::orderBy('id_jabatan', 'asc')->paginate(10);
-         return view('jabatan.index', compact('jabatan'));
+         return view('admin.jabatan.index', compact('jabatan'));
     }
 
     public function create()
@@ -30,7 +30,7 @@ class JabatanController extends Controller
 
     Jabatan::create($validated);
 
-    return redirect()->route('jabatan.index')->with('success', 'Jabatan berhasil ditambahkan.');
+    return redirect()->route('admin.jabatan.index')->with('success', 'Jabatan berhasil ditambahkan.');
 }
 
 
@@ -56,20 +56,20 @@ class JabatanController extends Controller
 
     $jabatan->update($validated);
 
-    return redirect()->route('jabatan.index')->with('success', 'Jabatan berhasil diperbarui.');
+    return redirect()->route('admin.jabatan.index')->with('success', 'Jabatan berhasil diperbarui.');
 }
 
 
     public function destroy(Jabatan $jabatan)
     {
         if ($jabatan->karyawan()->count() > 0) {
-            return redirect()->route('jabatan.index')
+            return redirect()->route('admin.jabatan.index')
                 ->with('error', 'Tidak dapat menghapus jabatan karena masih memiliki karyawan.');
         }
 
         $jabatan->delete();
 
-        return redirect()->route('jabatan.index')
+        return redirect()->route('admin.jabatan.index')
             ->with('success', 'Jabatan berhasil dihapus.');
     }
 }

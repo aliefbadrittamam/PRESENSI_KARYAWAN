@@ -220,7 +220,7 @@
             <!-- Navigation -->
             <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start w-100" id="menu">
                 <li class="nav-item w-100">
-                    <a href="{{ route('home') }}" class="nav-link px-3 align-middle">
+                    <a href="{{ route('admin.dashboard') }}" class="nav-link px-3 align-middle">
                         <i class="fas fa-home me-2"></i> Dashboard
                     </a>
                 </li>
@@ -232,7 +232,7 @@
                     <div class="collapse" id="presensiCollapse">
                         <ul class="nav nav-pills flex-column ms-3">
                             <li class="nav-item w-100">
-                                <a href="{{ route('presensi.index') }}" class="nav-link px-3 align-middle">
+                                <a href="{{ route('admin.presensi.index') }}" class="nav-link px-3 align-middle">
                                     <i class="fas fa-list me-2"></i> Data Presensi
                                 </a>
                             </li>
@@ -242,7 +242,7 @@
                                 </a>
                             </li>
                             <li class="nav-item w-100">
-                                <a href="{{ route('shift.index') }}" class="nav-link px-3 align-middle">
+                                <a href="{{ route('admin.shift.index') }}" class="nav-link px-3 align-middle">
                                     <i class="fas fa-clock me-2"></i> Shift Kerja
                                 </a>
                             </li>
@@ -255,22 +255,22 @@
                     </div>
                 </li>
                 <li class="nav-item w-100">
-                    <a href="{{ route('fakultas.index') }}" class="nav-link px-3 align-middle">
+                    <a href="{{ route('admin.fakultas.index') }}" class="nav-link px-3 align-middle">
                         <i class="fas fa-university me-2"></i> Fakultas
                     </a>
                 </li>
                 <li class="nav-item w-100">
-                    <a href="{{ route('departemen.index') }}" class="nav-link px-3 align-middle">
+                    <a href="{{ route('admin.departemen.index') }}" class="nav-link px-3 align-middle">
                         <i class="fas fa-building me-2"></i> Departemen
                     </a>
                 </li>
                 <li class="nav-item w-100">
-                    <a href="{{ route('jabatan.index') }}" class="nav-link px-3 align-middle">
+                    <a href="{{ route('admin.jabatan.index') }}" class="nav-link px-3 align-middle">
                         <i class="fas fa-briefcase me-2"></i> Jabatan
                     </a>
                 </li>
                 <li class="nav-item w-100">
-                    <a href="{{ route('karyawan.index') }}" class="nav-link px-3 align-middle">
+                    <a href="{{ route('admin.karyawan.index') }}" class="nav-link px-3 align-middle">
                         <i class="fas fa-users me-2"></i> Karyawan
                     </a>
                 </li>
