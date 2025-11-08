@@ -303,6 +303,37 @@
             border-top: 1px solid #4b545c;
             color: #fff;
         }
+
+        <style>.dark-mode .main-header.navbar {
+            background-color: #2f3237 !important;
+            border-bottom: 1px solid #3a3d41 !important;
+        }
+
+        .dark-mode .main-header .nav-link,
+        .dark-mode .navbar-nav .nav-item>a {
+            color: #ffffff !important;
+        }
+
+        .dark-mode .main-header .nav-link:hover {
+            background-color: #3a3d41 !important;
+            color: #ffffff !important;
+        }
+
+        .dark-mode .navbar .dropdown-menu {
+            background-color: #2f3237 !important;
+            border: 1px solid #3a3d41 !important;
+        }
+
+        .dark-mode .navbar .dropdown-item {
+            color: #ffffff !important;
+        }
+
+        .dark-mode .navbar .dropdown-item:hover {
+            background-color: #3a3d41 !important;
+            color: #ffffff !important;
+        }
+    </style>
+
     </style>
 
     @stack('css')
@@ -318,7 +349,7 @@
         </div>
 
         <!-- Navbar -->
-        <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+        <nav class="main-header navbar navbar-expand navbar-dark">
             <!-- Left navbar links -->
             <ul class="navbar-nav">
                 <li class="nav-item">
