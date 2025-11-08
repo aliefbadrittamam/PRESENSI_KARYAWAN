@@ -36,7 +36,7 @@ class LoginController extends Controller
         if (Auth::attempt($credentials)) {
             // Pastikan user-nya role admin
             if (Auth::user()->role === 'admin') {
-                return redirect()->route('home');
+                return redirect()->route('admin.dashboard');
             } else {
                 Auth::logout();
                 return back()->withErrors(['email' => 'Anda tidak memiliki akses sebagai admin.']);

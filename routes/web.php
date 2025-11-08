@@ -33,12 +33,19 @@ Route::get('/', function () {
 */
 
 // 🔹 Login Admin
-Route::get('/login/admin', [LoginController::class, 'showAdminLoginForm'])->name('login.admin');
-Route::post('/login/admin', [LoginController::class, 'adminLogin'])->name('login.admin.submit');
+Route::middleware('redirect.role')->group(function () {
+    Route::get('/', function () {
+        return redirect()->route('login.karyawan');
+    });
 
-// 🔹 Login Karyawan
-Route::get('/login/karyawan', [LoginController::class, 'showKaryawanLoginForm'])->name('login.karyawan');
-Route::post('/login/karyawan', [LoginController::class, 'karyawanLogin'])->name('login.karyawan.submit');
+    // Login Admin
+    Route::get('/login/admin', [LoginController::class, 'showAdminLoginForm'])->name('login.admin');
+    Route::post('/login/admin', [LoginController::class, 'adminLogin'])->name('login.admin.submit');
+
+    // Login Karyawan
+    Route::get('/login/karyawan', [LoginController::class, 'showKaryawanLoginForm'])->name('login.karyawan');
+    Route::post('/login/karyawan', [LoginController::class, 'karyawanLogin'])->name('login.karyawan.submit');
+});
 
 // 🔹 Barcode Login
 Route::get('/barcode-login/{token}', [BarcodeLoginController::class, 'login'])->name('barcode.login');
@@ -118,8 +125,9 @@ Route::middleware(['auth'])
     ->name('admin.')
     ->group(function () {
         // DASHBOARD ADMIN
+        // Route::get('/dashboard', [HomeController::class,php 'index'])->name('home');
         Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
-        
+
         // Redirect /home ke /admin/dashboard untuk backward compatibility
         Route::redirect('/home', '/admin/dashboard');
 
