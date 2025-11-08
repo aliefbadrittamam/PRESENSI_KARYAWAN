@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login via QR Code</title>
-    
+
     <!-- Bootstrap 5 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -14,26 +14,26 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.10.1/sweetalert2.min.css" rel="stylesheet">
     <!-- QR Scanner -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
-    
+
     <style>
         :root {
             /* 🌿 Warna Utama (Sage Green) */
             --primary-sage: #9DC183;
             --secondary-sage: #6FA976;
-            
+
             /* 🌼 Warna Aksen */
             --accent-cream: #FDF6EC;
             --accent-gold: #E4C988;
-            
+
             /* 🪴 Warna Netral & Teks */
             --light-gray: #F5F7FA;
             --medium-gray: #A0AEC0;
             --dark-gray: #4A5568;
-            
+
             /* 🌸 Warna Sekunder Pelengkap */
             --soft-pink: #F2C6B4;
             --soft-blue: #BFD8D2;
-            
+
             /* 🌚 Shadow */
             --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
@@ -52,6 +52,17 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #vanta-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
         }
 
         .scanner-container {
@@ -61,6 +72,8 @@
             width: 100%;
             max-width: 500px;
             padding: 2rem;
+            position: relative;
+            z-index: 1;
         }
 
         .header-section {
@@ -302,6 +315,8 @@
 </head>
 
 <body>
+    <div id="vanta-bg"></div>
+
     <div class="scanner-container">
         <div class="header-section">
             <i class="fas fa-qrcode"></i>
@@ -312,12 +327,14 @@
         <!-- Tabs -->
         <ul class="nav nav-tabs mb-3" role="tablist">
             <li class="nav-item flex-fill" role="presentation">
-                <button class="nav-link active w-100" id="camera-tab" data-bs-toggle="tab" data-bs-target="#camera" type="button" role="tab">
+                <button class="nav-link active w-100" id="camera-tab" data-bs-toggle="tab" data-bs-target="#camera"
+                    type="button" role="tab">
                     <i class="fas fa-camera me-2"></i>Kamera
                 </button>
             </li>
             <li class="nav-item flex-fill" role="presentation">
-                <button class="nav-link w-100" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload" type="button" role="tab">
+                <button class="nav-link w-100" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload"
+                    type="button" role="tab">
                     <i class="fas fa-image me-2"></i>Upload
                 </button>
             </li>
@@ -364,7 +381,22 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
     <!-- SweetAlert2 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.10.1/sweetalert2.all.min.js"></script>
-
+    <!-- THREE.js + VANTA.NET -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/tengbao/vanta@latest/dist/vanta.net.min.js"></script>
+    <script>
+        VANTA.NET({
+            el: "#vanta-bg",
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            color: 0x000000,
+            backgroundColor: 0xffffff,
+            points: 12.0,
+            maxDistance: 20.0,
+            spacing: 18.0
+        });
+    </script>
     <script>
         let html5QrCode = null;
         let cameras = [];
@@ -387,7 +419,7 @@
             tab.addEventListener('shown.bs.tab', (e) => {
                 const target = e.target.getAttribute('data-bs-target');
                 currentTab = target === '#camera' ? 'camera' : 'upload';
-                
+
                 if (currentTab === 'camera') {
                     if (!html5QrCode || !html5QrCode.isScanning) {
                         init();
@@ -397,7 +429,7 @@
                         stopScanning();
                     }
                 }
-                
+
                 resultEl.className = '';
                 hasScanned = false;
             });
@@ -449,14 +481,14 @@
 
             } else {
                 setStatus('⚠️ Bukan URL yang valid', 'warning');
-                
+
                 Swal.fire({
                     icon: 'warning',
                     title: 'QR Code Terdeteksi',
                     text: 'Namun ini bukan URL yang valid untuk login',
                     confirmButtonText: 'OK'
                 });
-                
+
                 hasScanned = false;
             }
         }
@@ -472,8 +504,7 @@
             });
         }
 
-        function onScanError(err) {
-        }
+        function onScanError(err) {}
 
         async function startScanning(cameraId) {
             try {
@@ -481,7 +512,10 @@
 
                 const config = {
                     fps: 10,
-                    qrbox: { width: 250, height: 250 }
+                    qrbox: {
+                        width: 250,
+                        height: 250
+                    }
                 };
 
                 await html5QrCode.start(cameraId, config, onScanSuccess, onScanError);
@@ -492,7 +526,7 @@
             } catch (err) {
                 setStatus('Error: ' + err.message, 'error');
                 restartBtn.style.display = 'inline-block';
-                
+
                 Swal.fire({
                     icon: 'error',
                     title: 'Gagal Memulai Kamera',
@@ -507,8 +541,7 @@
                 if (html5QrCode && html5QrCode.isScanning) {
                     await html5QrCode.stop();
                 }
-            } catch (err) {
-            }
+            } catch (err) {}
         }
 
         async function init() {
@@ -582,7 +615,7 @@
 
             } catch (err) {
                 setStatus('Tidak ada QR Code terdeteksi di gambar', 'error');
-                
+
                 Swal.fire({
                     icon: 'error',
                     title: 'Gagal Scan QR Code',

@@ -25,6 +25,7 @@
         }
     </style>
 </head>
+  <div id="vanta-bg">
 
 <body class="bg-light">
 
@@ -108,7 +109,22 @@
             </div>
         </div>
     </div>
-
+    </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/tengbao/vanta@latest/dist/vanta.net.min.js"></script>
+  <script>
+    VANTA.NET({
+      el: "#vanta-bg",
+      mouseControls: true,
+      touchControls: true,
+      gyroControls: false,
+      color: 0x000000,           // partikel & garis warna hitam
+      backgroundColor: 0xffffff, // background putih
+      points: 12.0,
+      maxDistance: 20.0,
+      spacing: 18.0
+    });
+  </script>
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
@@ -148,6 +164,8 @@
             }
         });
     </script>
+
+
 
 </body>
 
