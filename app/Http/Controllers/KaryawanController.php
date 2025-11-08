@@ -27,7 +27,7 @@ class KaryawanController extends Controller
         $departemen = Departemen::where('status_aktif', true)->get();
         $fakultas = Fakultas::where('status_aktif', true)->get();
 
-        return view('karyawan.create', compact('jabatan', 'departemen', 'fakultas'));
+        return view('admin.karyawan.create', compact('jabatan', 'departemen', 'fakultas'));
     }
 
     public function store(Request $request): RedirectResponse

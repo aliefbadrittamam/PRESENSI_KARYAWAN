@@ -18,7 +18,7 @@ class DepartemenController extends Controller
     public function create()
     {
         $fakultas = Fakultas::where('status_aktif', true)->get();
-        return view('departemen.create', compact('fakultas'));
+        return view('admin.departemen.create', compact('fakultas'));
     }
 
     public function store(Request $request)
