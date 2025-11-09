@@ -17,7 +17,7 @@ return new class extends Migration {
             $table->string('name'); // Nama lengkap pengguna
             $table->string('email')->unique(); // Email untuk login
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password'); // Disimpan dalam bentuk hash bcrypt
+            $table->string('password')->nullable()->default(null); // Disimpan dalam bentuk hash bcrypt
 
             // Peran dan status sistem
             $table->enum('role', ['admin', 'hrd', 'supervisor', 'user'])->default('user'); // Role 'user' untuk karyawan biasa

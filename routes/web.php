@@ -2,16 +2,17 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\User\CutiController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\IzinController;
 use App\Http\Controllers\ShiftController;
-use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\JabatanController;
 use App\Http\Controllers\FakultasController;
 use App\Http\Controllers\KaryawanController;
+use App\Http\Controllers\PresensiController;
+use App\Http\Controllers\User\CutiController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DepartemenController;
+use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\Auth\BarcodeLoginController;
 use App\Http\Controllers\Admin\LokasiPresensiController;
 use App\Http\Controllers\User\KaryawanPresensiController;
@@ -109,10 +110,26 @@ Route::middleware(['auth'])->group(function () {
         });
 
     // PROFILE
-    Route::get('/profile', [KaryawanDashboardController::class, 'profile'])->name('karyawan.profile');
-    Route::post('/profile/password', [KaryawanDashboardController::class, 'updatePassword'])->name('karyawan.update-password');
-    Route::post('/profile/photo', [KaryawanDashboardController::class, 'updatePhoto'])->name('karyawan.update-photo');
-    Route::post('/profile/regenerate-qrcode', [KaryawanDashboardController::class, 'regenerateQRCode'])->name('karyawan.regenerate-qrcode');
+   Route::prefix('profile')->name('karyawan.')->group(function () {
+        
+        // Display profile
+        Route::get('/', [ProfileController::class, 'index'])->name('profile');
+        
+        // Create Password (untuk user yang belum punya password)
+        Route::post('/create-password', [ProfileController::class, 'createPassword'])->name('create-password');
+        
+        // Update Password (untuk user yang sudah punya password)
+        Route::post('/update-password', [ProfileController::class, 'updatePassword'])->name('update-password');
+        
+        // Update Photo
+        Route::post('/update-photo', [ProfileController::class, 'updatePhoto'])->name('update-photo');
+        
+        // Regenerate QR Code
+        Route::post('/regenerate-qrcode', [ProfileController::class, 'regenerateQRCode'])->name('regenerate-qrcode');
+        
+        // Update Profile Info (optional - jika mau edit email/phone)
+        Route::post('/update-info', [ProfileController::class, 'updateProfile'])->name('update-info');
+    });
 });
 
 /*

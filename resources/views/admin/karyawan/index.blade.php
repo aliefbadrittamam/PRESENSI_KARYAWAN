@@ -538,6 +538,6 @@
                 printWindow.document.close();
             });
 
-        }); // end DOMContentLoaded
+        }); 
     </script>
 @endpush

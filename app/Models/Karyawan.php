@@ -2,17 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class Karyawan extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     protected $table = 'karyawan';
     protected $primaryKey = 'id_karyawan';
     public $timestamps = true;
+
+     protected $dates = ['deleted_at'];
 
     protected $fillable = ['user_id', 'id_jabatan', 'id_departemen', 'id_fakultas', 'nip', 'nama_lengkap', 'jenis_kelamin', 'tanggal_lahir', 'email', 'nomor_telepon', 'id_jabatan', 'id_departemen', 'id_fakultas', 'status_aktif', 'tanggal_mulai_kerja', 'tanggal_berhenti_kerja', 'foto', 'template_face_id', 'status_verifikasi_face_id', 'tanggal_verifikasi_face_id', 'password', 'role'];
 

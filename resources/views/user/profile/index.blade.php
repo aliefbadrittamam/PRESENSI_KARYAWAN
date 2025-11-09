@@ -61,7 +61,7 @@
             <!-- Informasi Pribadi -->
             <div class="col-lg-6 mb-4">
                 <div class="info-card">
-                    <div class="card-header-custom">
+                    <div class="card-header-custom bg-gradient-primary">
                         <h5 class="mb-0">
                             <i class="fas fa-user-circle me-2"></i>
                             Informasi Pribadi
@@ -99,7 +99,7 @@
             <!-- Informasi Kepegawaian -->
             <div class="col-lg-6 mb-4">
                 <div class="info-card">
-                    <div class="card-header-custom">
+                    <div class="card-header-custom bg-gradient-success">
                         <h5 class="mb-0">
                             <i class="fas fa-briefcase me-2"></i>
                             Informasi Kepegawaian
@@ -139,7 +139,7 @@
             <!-- QR Code Card -->
             <div class="col-lg-6 mb-4">
                 <div class="info-card">
-                    <div class="card-header-custom">
+                    <div class="card-header-custom bg-gradient-info">
                         <h5 class="mb-0">
                             <i class="fas fa-qrcode me-2"></i>
                             QR Code Login
@@ -167,13 +167,13 @@
                 </div>
             </div>
 
-            <!-- Ubah Password Card -->
+            <!-- Password Card - Dynamic -->
             <div class="col-lg-6 mb-4">
                 <div class="info-card">
-                    <div class="card-header-custom">
+                    <div class="card-header-custom {{ $hasPassword ? 'bg-gradient-warning' : 'bg-gradient-danger' }}">
                         <h5 class="mb-0">
-                            <i class="fas fa-lock me-2"></i>
-                            Ubah Password
+                            <i class="fas fa-{{ $hasPassword ? 'lock' : 'exclamation-triangle' }} me-2"></i>
+                            {{ $hasPassword ? 'Ubah Password' : 'Buat Password' }}
                         </h5>
                     </div>
                     <div class="card-body-custom">
@@ -187,35 +187,109 @@
                             </div>
                         @endif
 
-                        <form action="{{ route('karyawan.update-password') }}" method="POST">
-                            @csrf
-                            <div class="mb-3">
-                                <label class="form-label">Password Lama</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                    <input type="password" class="form-control" name="current_password" required>
-                                </div>
+                        @if(!$hasPassword)
+                            <!-- Alert untuk user yang belum punya password -->
+                            <div class="alert alert-warning mb-3">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                <strong>Perhatian!</strong> Anda belum memiliki password. Silakan buat password untuk keamanan akun Anda.
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">Password Baru</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-key"></i></span>
-                                    <input type="password" class="form-control" name="new_password" required minlength="8">
+
+                            <!-- Form Buat Password Baru -->
+                            <form action="{{ route('karyawan.create-password') }}" method="POST">
+                                @csrf
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-key text-primary me-2"></i>
+                                        Password Baru <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                        <input type="password" class="form-control" name="new_password" id="new_password" required minlength="8" placeholder="Minimal 8 karakter">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('new_password')">
+                                            <i class="fas fa-eye" id="toggle-new_password"></i>
+                                        </button>
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Minimal 8 karakter, kombinasi huruf dan angka
+                                    </small>
                                 </div>
-                                <small class="text-muted">Minimal 8 karakter</small>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Konfirmasi Password Baru</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-check"></i></span>
-                                    <input type="password" class="form-control" name="new_password_confirmation" required minlength="8">
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-check-double text-success me-2"></i>
+                                        Konfirmasi Password <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-check"></i></span>
+                                        <input type="password" class="form-control" name="new_password_confirmation" id="new_password_confirmation" required minlength="8" placeholder="Ulangi password">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('new_password_confirmation')">
+                                            <i class="fas fa-eye" id="toggle-new_password_confirmation"></i>
+                                        </button>
+                                    </div>
                                 </div>
+                                <button type="submit" class="btn btn-primary w-100 btn-lg">
+                                    <i class="fas fa-key me-2"></i>
+                                    Buat Password
+                                </button>
+                            </form>
+                        @else
+                            <!-- Form Ubah Password (untuk user yang sudah punya password) -->
+                            <div class="alert alert-info mb-3">
+                                <i class="fas fa-shield-alt me-2"></i>
+                                Ubah password Anda secara berkala untuk menjaga keamanan akun.
                             </div>
-                            <button type="submit" class="btn btn-primary w-100">
-                                <i class="fas fa-save me-2"></i>
-                                Ubah Password
-                            </button>
-                        </form>
+
+                            <form action="{{ route('karyawan.update-password') }}" method="POST">
+                                @csrf
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-lock text-secondary me-2"></i>
+                                        Password Lama <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                        <input type="password" class="form-control" name="current_password" id="current_password" required placeholder="Masukkan password lama">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('current_password')">
+                                            <i class="fas fa-eye" id="toggle-current_password"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-key text-primary me-2"></i>
+                                        Password Baru <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-key"></i></span>
+                                        <input type="password" class="form-control" name="new_password" id="new_password_update" required minlength="8" placeholder="Minimal 8 karakter">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('new_password_update')">
+                                            <i class="fas fa-eye" id="toggle-new_password_update"></i>
+                                        </button>
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Minimal 8 karakter, kombinasi huruf dan angka
+                                    </small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-check-double text-success me-2"></i>
+                                        Konfirmasi Password Baru <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-check"></i></span>
+                                        <input type="password" class="form-control" name="new_password_confirmation" id="new_password_confirmation_update" required minlength="8" placeholder="Ulangi password baru">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('new_password_confirmation_update')">
+                                            <i class="fas fa-eye" id="toggle-new_password_confirmation_update"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-warning w-100 btn-lg text-white">
+                                    <i class="fas fa-save me-2"></i>
+                                    Ubah Password
+                                </button>
+                            </form>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -281,14 +355,6 @@
                             Scan QR Code untuk login otomatis
                         </p>
                     </div>
-                </div>
-
-                <!-- Debug Info (bisa dihapus di production) -->
-                <div id="debugInfo" class="mt-3" style="display: none;">
-                    <small class="text-muted">
-                        <strong>Token:</strong> <span id="debugToken">—</span><br>
-                        <strong>URL:</strong> <span id="debugUrl">—</span>
-                    </small>
                 </div>
             </div>
             <div class="modal-footer">
@@ -400,9 +466,28 @@
     }
 
     .card-header-custom {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
         color: white;
         padding: 1.25rem 1.5rem;
+    }
+
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .bg-gradient-success {
+        background: linear-gradient(135deg, #28a745 0%, #208637 100%);
+    }
+
+    .bg-gradient-info {
+        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    }
+
+    .bg-gradient-warning {
+        background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    }
+
+    .bg-gradient-danger {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
     }
 
     .card-body-custom {
@@ -445,6 +530,33 @@
         justify-content: center;
     }
 
+    /* Password Toggle Button */
+    .input-group .btn-outline-secondary {
+        border-color: #ced4da;
+    }
+
+    .input-group .btn-outline-secondary:hover {
+        background-color: #e9ecef;
+        border-color: #ced4da;
+        color: #495057;
+    }
+
+    /* Alert Enhancements */
+    .alert {
+        border-radius: 12px;
+        border: none;
+    }
+
+    .alert-warning {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+        color: #856404;
+    }
+
+    .alert-info {
+        background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+        color: #0c5460;
+    }
+
     @media (max-width: 768px) {
         .profile-container {
             padding: 0.5rem;
@@ -465,6 +577,22 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
+    // Toggle Password Visibility
+    function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById('toggle-' + inputId);
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+
     // Preview photo before upload
     document.querySelector('input[name="photo"]').addEventListener('change', function(e) {
         const file = e.target.files[0];
@@ -478,7 +606,7 @@
         }
     });
 
-    // QR Code functionality (sama seperti admin)
+    // QR Code functionality
     document.addEventListener('DOMContentLoaded', function() {
         const qrcodeModalEl = document.getElementById('qrcodeModal');
         const qrcodeModal = new bootstrap.Modal(qrcodeModalEl);
@@ -508,9 +636,6 @@
 
             const baseUrl = window.location.origin;
             const loginUrl = baseUrl + '/barcode-login/' + encodeURIComponent(qrcodeToken);
-
-            document.getElementById('debugToken').textContent = qrcodeToken;
-            document.getElementById('debugUrl').textContent = loginUrl;
 
             try {
                 currentQRCode = new QRCode(qrcodeContainer, {

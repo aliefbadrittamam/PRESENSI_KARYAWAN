@@ -60,13 +60,17 @@ class KaryawanController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        // ✅ 1. Buat user baru terlebih dahulu
-        $barcode = Str::random(12);
+        // ✅ Generate random 6 digit password
+        $randomPassword = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+        
+        // ✅ Generate barcode token
+        $barcode = Str::uuid()->toString();
 
+        // ✅ 1. Buat user baru dengan password random 6 digit
         $user = User::create([
             'name' => $request->nama_lengkap,
             'email' => $request->email,
-            'password' => bcrypt($barcode), // default password sama dengan barcode
+            'password' => bcrypt($randomPassword),
             'role' => 'user',
             'status' => 'active',
             'phone' => $request->nomor_telepon,
@@ -80,7 +84,7 @@ class KaryawanController extends Controller
         // Handle status_aktif checkbox
         $data['status_aktif'] = $request->has('status_aktif') ? true : false;
 
-        // ✅ 3. Handle upload foto (disamakan dengan update)
+        // ✅ 3. Handle upload foto
         if ($request->hasFile('foto')) {
             $fotoPath = $request->file('foto')->store('foto-karyawan', 'public');
             $data['foto'] = $fotoPath;
@@ -89,7 +93,9 @@ class KaryawanController extends Controller
         // ✅ 4. Simpan data karyawan
         Karyawan::create($data);
 
-        return redirect()->route('admin.karyawan.index')->with('success', 'Karyawan berhasil ditambahkan dan barcode token telah dihasilkan.');
+        return redirect()
+            ->route('admin.karyawan.index')
+            ->with('success', "Karyawan berhasil ditambahkan! Password default: <strong>{$randomPassword}</strong> (Harap dicatat)");
     }
 
     public function show(Karyawan $karyawan)
