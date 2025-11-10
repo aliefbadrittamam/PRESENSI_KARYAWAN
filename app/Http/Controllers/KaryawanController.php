@@ -61,7 +61,7 @@ class KaryawanController extends Controller
         }
 
         // ✅ Generate random 6 digit password
-        $randomPassword = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+        // $randomPassword = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
         
         // ✅ Generate barcode token
         $barcode = Str::uuid()->toString();
@@ -70,7 +70,7 @@ class KaryawanController extends Controller
         $user = User::create([
             'name' => $request->nama_lengkap,
             'email' => $request->email,
-            'password' => bcrypt($randomPassword),
+            // 'password' => bcrypt($randomPassword),
             'role' => 'user',
             'status' => 'active',
             'phone' => $request->nomor_telepon,
@@ -95,7 +95,7 @@ class KaryawanController extends Controller
 
         return redirect()
             ->route('admin.karyawan.index')
-            ->with('success', "Karyawan berhasil ditambahkan! Password default: <strong>{$randomPassword}</strong> (Harap dicatat)");
+            ->with('success', "Karyawan berhasil ditambahkan!");
     }
 
     public function show(Karyawan $karyawan)
@@ -110,7 +110,7 @@ class KaryawanController extends Controller
         $departemen = Departemen::where('status_aktif', true)->get();
         $fakultas = Fakultas::where('status_aktif', true)->get();
 
-        return view('karyawan.edit', compact('karyawan', 'jabatan', 'departemen', 'fakultas'));
+        return view('admin.karyawan.edit', compact('karyawan', 'jabatan', 'departemen', 'fakultas'));
     }
 
     public function update(Request $request, Karyawan $karyawan): RedirectResponse

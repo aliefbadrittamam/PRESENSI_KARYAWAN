@@ -2,6 +2,9 @@
 <html lang="id">
 
 <head>
+    <style>
+
+    </style>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Presensi UNI - @yield('title', 'home')</title>
@@ -14,6 +17,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- AdminLTE CSS -->
+    {{-- <link rel="stylesheet" href="{{ secure_asset('vendor/adminlte/dist/css/adminlte.min.css') }}"> --}}
+
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/adminlte.min.css') }}">
 
     <!-- DataTables -->
@@ -512,8 +517,10 @@
                         </li>
 
                         <!-- Presensi -->
-                        <li class="nav-item {{ Request::is('admin/presensi*', 'admin/lokasi-presensi*') ? 'menu-open' : '' }}">
-                            <a href="#" class="nav-link {{ Request::is('admin/presensi*', 'admin/lokasi-presensi*') ? 'active' : '' }}">
+                        <li
+                            class="nav-item {{ Request::is('admin/presensi*', 'admin/lokasi-presensi*') ? 'menu-open' : '' }}">
+                            <a href="#"
+                                class="nav-link {{ Request::is('admin/presensi*', 'admin/lokasi-presensi*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-calendar-check"></i>
                                 <p>
                                     Presensi
@@ -535,9 +542,26 @@
                                         <p>Rekap Presensi</p>
                                     </a>
                                 </li>
+                                <!-- Tambahkan menu baru setelah menu Presensi -->
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.presensi.monitoring') }}"
+                                        class="nav-link {{ Request::is('admin/presensi/monitoring*') ? 'active' : '' }}">
+                                        <i class="nav-icon fas fa-desktop"></i>
+                                        <p>Monitoring Presensi</p>
+                                    </a>
+                                </li>
                             </ul>
                         </li>
 
+
+                        <!-- Tambahkan menu File Manager -->
+                        <li class="nav-item">
+                            <a href="{{ route('admin.file-manager.index') }}"
+                                class="nav-link {{ Request::is('admin/file-manager*') ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-folder-open"></i>
+                                <p>File Manager</p>
+                            </a>
+                        </li>
                         <!-- Pengajuan Izin & Cuti -->
                         <li class="nav-item">
                             <a href="{{ route('admin.pengajuan.index') }}"
@@ -559,8 +583,7 @@
 
                         <!-- Konfigurasi -->
                         <li class="nav-item {{ Request::is('admin/shift*') ? 'menu-open' : '' }}">
-                            <a href="#"
-                                class="nav-link {{ Request::is('admin/shift*') ? 'active' : '' }}">
+                            <a href="#" class="nav-link {{ Request::is('admin/shift*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-cogs"></i>
                                 <p>
                                     Konfigurasi

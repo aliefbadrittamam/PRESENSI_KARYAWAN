@@ -110,26 +110,27 @@ Route::middleware(['auth'])->group(function () {
         });
 
     // PROFILE
-   Route::prefix('profile')->name('karyawan.')->group(function () {
-        
-        // Display profile
-        Route::get('/', [ProfileController::class, 'index'])->name('profile');
-        
-        // Create Password (untuk user yang belum punya password)
-        Route::post('/create-password', [ProfileController::class, 'createPassword'])->name('create-password');
-        
-        // Update Password (untuk user yang sudah punya password)
-        Route::post('/update-password', [ProfileController::class, 'updatePassword'])->name('update-password');
-        
-        // Update Photo
-        Route::post('/update-photo', [ProfileController::class, 'updatePhoto'])->name('update-photo');
-        
-        // Regenerate QR Code
-        Route::post('/regenerate-qrcode', [ProfileController::class, 'regenerateQRCode'])->name('regenerate-qrcode');
-        
-        // Update Profile Info (optional - jika mau edit email/phone)
-        Route::post('/update-info', [ProfileController::class, 'updateProfile'])->name('update-info');
-    });
+    Route::prefix('profile')
+        ->name('karyawan.')
+        ->group(function () {
+            // Display profile
+            Route::get('/', [ProfileController::class, 'index'])->name('profile');
+
+            // Create Password (untuk user yang belum punya password)
+            Route::post('/create-password', [ProfileController::class, 'createPassword'])->name('create-password');
+
+            // Update Password (untuk user yang sudah punya password)
+            Route::post('/update-password', [ProfileController::class, 'updatePassword'])->name('update-password');
+
+            // Update Photo
+            Route::post('/update-photo', [ProfileController::class, 'updatePhoto'])->name('update-photo');
+
+            // Regenerate QR Code
+            Route::post('/regenerate-qrcode', [ProfileController::class, 'regenerateQRCode'])->name('regenerate-qrcode');
+
+            // Update Profile Info (optional - jika mau edit email/phone)
+            Route::post('/update-info', [ProfileController::class, 'updateProfile'])->name('update-info');
+        });
 });
 
 /*
@@ -164,6 +165,16 @@ Route::middleware(['auth'])
                 Route::get('/rekap/download-pdf', [PresensiController::class, 'downloadPdf'])->name('download-pdf');
                 Route::get('/{id}', [PresensiController::class, 'show'])->name('show');
             });
+
+        Route::get('/presensi/monitoring', [App\Http\Controllers\Admin\PresensiMonitoringController::class, 'index'])->name('presensi.monitoring');
+        Route::get('/presensi/monitoring/{id}', [App\Http\Controllers\Admin\PresensiMonitoringController::class, 'show'])->name('presensi.monitoring.show');
+        Route::get('/presensi/monitoring/export/excel', [App\Http\Controllers\Admin\PresensiMonitoringController::class, 'exportExcel'])->name('presensi.monitoring.export-excel');
+        Route::get('/presensi/monitoring/export/pdf', [App\Http\Controllers\Admin\PresensiMonitoringController::class, 'exportPDF'])->name('presensi.monitoring.export-pdf');
+
+        // File Manager
+        Route::get('/file-manager', [App\Http\Controllers\Admin\FileManagerController::class, 'index'])->name('file-manager.index');
+        Route::delete('/file-manager/{path}', [App\Http\Controllers\Admin\FileManagerController::class, 'delete'])->name('file-manager.delete');
+        Route::post('/file-manager/bulk-delete', [App\Http\Controllers\Admin\FileManagerController::class, 'bulkDelete'])->name('file-manager.bulk-delete');
 
         // PENGAJUAN (IZIN & CUTI)
         Route::prefix('pengajuan')

@@ -60,17 +60,20 @@ class LoginController extends Controller
         // 🚫 NIP tidak ditemukan
         if (!$karyawan) {
             return back()
-                ->withInput() // agar form tidak ter-reset
+                ->withInput()
                 ->with('error_type', 'nip_not_found')
                 ->with('error_message', 'NIP tidak ditemukan.');
         }
 
         // 🚫 Akun belum terhubung dengan user (tabel users)
         if (!$karyawan->user) {
-            return back()->withInput()->with('error_type', 'unlinked_user')->with('error_message', 'Akun ini belum terhubung dengan data login.');
+            return back()
+                ->withInput()
+                ->with('error_type', 'unlinked_user')
+                ->with('error_message', 'Akun ini belum terhubung dengan data login.');
         }
 
-        // 3️⃣ Coba autentikasi berdasarkan email dari tabel users
+        // 3️⃣ Coba autentikasi berdasarkan email dari tabel users    
         if (
             Auth::attempt([
                 'email' => $karyawan->user->email,
@@ -81,15 +84,21 @@ class LoginController extends Controller
             if (Auth::user()->role === 'user') {
                 // ✅ Login sukses
                 session()->flash('login_success', 'Selamat datang, ' . Auth::user()->name . '!');
-                return redirect()->route('presensi.masuk');
+                return redirect()->route('user.dashboard');
             } else {
                 Auth::logout();
-                return back()->withInput()->with('error_type', 'wrong_role')->with('error_message', 'Akun ini bukan karyawan.');
+                return back()
+                    ->withInput()
+                    ->with('error_type', 'wrong_role')
+                    ->with('error_message', 'Akun ini bukan karyawan.');
             }
         }
 
         // 🚫 Password salah
-        return back()->withInput()->with('error_type', 'invalid_credentials')->with('error_message', 'NIP atau password salah.');
+        return back()
+            ->withInput()
+            ->with('error_type', 'invalid_credentials')
+            ->with('error_message', 'NIP atau password salah.');
     }
 
     // 🔹 Logout
