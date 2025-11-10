@@ -17,6 +17,15 @@
             </div>
         @endif
 
+        <!-- Error Message -->
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
         <!-- Profile Header Card -->
         <div class="profile-header-card mb-4">
             <div class="row align-items-center">
@@ -308,23 +317,33 @@
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="{{ route('karyawan.update-photo') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('karyawan.update-photo') }}" method="POST" enctype="multipart/form-data" id="photoForm">
                 @csrf
                 <div class="modal-body">
+                    @if($errors->has('photo'))
+                        <div class="alert alert-danger">
+                            {{ $errors->first('photo') }}
+                        </div>
+                    @endif
                     <div class="mb-3">
-                        <label class="form-label">Pilih Foto</label>
-                        <input type="file" class="form-control" name="photo" accept="image/*" required>
-                        <small class="text-muted">Format: JPG, PNG. Maksimal 2MB</small>
+                        <label class="form-label">Pilih Foto <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control" name="photo" id="photoInput" accept="image/jpeg,image/png,image/jpg" required>
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Format: JPG, PNG. Maksimal 2MB
+                        </small>
                     </div>
                     <div id="preview-container" style="display: none;">
-                        <img id="preview-image" class="img-fluid rounded" style="max-height: 300px;">
+                        <label class="form-label">Preview:</label>
+                        <img id="preview-image" class="img-fluid rounded" style="max-height: 300px; width: 100%; object-fit: contain;">
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-upload me-2"></i>
-                        Upload Foto
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Batal
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="submitPhotoBtn">
+                        <i class="fas fa-upload me-2"></i>Upload Foto
                     </button>
                 </div>
             </form>
@@ -594,17 +613,55 @@
     }
 
     // Preview photo before upload
-    document.querySelector('input[name="photo"]').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('preview-image').src = e.target.result;
-                document.getElementById('preview-container').style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-        }
-    });
+    const photoInput = document.getElementById('photoInput');
+    const previewContainer = document.getElementById('preview-container');
+    const previewImage = document.getElementById('preview-image');
+    const submitPhotoBtn = document.getElementById('submitPhotoBtn');
+
+    if (photoInput) {
+        photoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            
+            if (file) {
+                // Validate file type
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+                if (!allowedTypes.includes(file.type)) {
+                    alert('Format file tidak valid. Gunakan JPG atau PNG.');
+                    photoInput.value = '';
+                    previewContainer.style.display = 'none';
+                    return;
+                }
+
+                // Validate file size (max 2MB)
+                const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+                if (file.size > maxSize) {
+                    alert('Ukuran file terlalu besar. Maksimal 2MB.');
+                    photoInput.value = '';
+                    previewContainer.style.display = 'none';
+                    return;
+                }
+
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                previewContainer.style.display = 'none';
+            }
+        });
+    }
+
+    // Form submission
+    const photoForm = document.getElementById('photoForm');
+    if (photoForm) {
+        photoForm.addEventListener('submit', function(e) {
+            submitPhotoBtn.disabled = true;
+            submitPhotoBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+        });
+    }
 
     // QR Code functionality
     document.addEventListener('DOMContentLoaded', function() {
