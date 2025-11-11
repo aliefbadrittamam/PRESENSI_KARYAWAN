@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('title', 'Monitoring Presensi')
 @section('icon', 'fa-desktop')

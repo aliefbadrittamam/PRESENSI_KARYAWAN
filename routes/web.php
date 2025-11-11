@@ -156,6 +156,15 @@ Route::middleware(['auth'])
         Route::resource('karyawan', KaryawanController::class);
         Route::resource('shift', ShiftController::class);
 
+        Route::prefix('presensi/monitoring')
+            ->name('monitoring.')
+            ->group(function () {
+                Route::get('/', [App\Http\Controllers\Admin\PresensiMonitoringController::class, 'index'])->name('index');
+                Route::get('/export/excel', [App\Http\Controllers\Admin\PresensiMonitoringController::class, 'exportExcel'])->name('export-excel');
+                Route::get('/export/pdf', [App\Http\Controllers\Admin\PresensiMonitoringController::class, 'exportPDF'])->name('export-pdf');
+                Route::get('/{id}', [App\Http\Controllers\Admin\PresensiMonitoringController::class, 'show'])->name('show');
+            });
+
         // PRESENSI - ADMIN (PresensiController)
         Route::prefix('presensi')
             ->name('presensi.')
@@ -166,16 +175,10 @@ Route::middleware(['auth'])
                 Route::get('/{id}', [PresensiController::class, 'show'])->name('show');
             });
 
-        Route::get('/presensi/monitoring', [App\Http\Controllers\Admin\PresensiMonitoringController::class, 'index'])->name('presensi.monitoring');
-        Route::get('/presensi/monitoring/{id}', [App\Http\Controllers\Admin\PresensiMonitoringController::class, 'show'])->name('presensi.monitoring.show');
-        Route::get('/presensi/monitoring/export/excel', [App\Http\Controllers\Admin\PresensiMonitoringController::class, 'exportExcel'])->name('presensi.monitoring.export-excel');
-        Route::get('/presensi/monitoring/export/pdf', [App\Http\Controllers\Admin\PresensiMonitoringController::class, 'exportPDF'])->name('presensi.monitoring.export-pdf');
-
         // File Manager
         Route::get('/file-manager', [App\Http\Controllers\Admin\FileManagerController::class, 'index'])->name('file-manager.index');
-        Route::delete('/file-manager/{path}', [App\Http\Controllers\Admin\FileManagerController::class, 'delete'])->name('file-manager.delete');
+        Route::delete('/file-manager/delete', [App\Http\Controllers\Admin\FileManagerController::class, 'delete'])->name('file-manager.delete');
         Route::post('/file-manager/bulk-delete', [App\Http\Controllers\Admin\FileManagerController::class, 'bulkDelete'])->name('file-manager.bulk-delete');
-
         // PENGAJUAN (IZIN & CUTI)
         Route::prefix('pengajuan')
             ->name('pengajuan.')
