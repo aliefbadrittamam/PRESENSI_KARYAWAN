@@ -16,7 +16,7 @@ class JabatanController extends Controller
 
     public function create()
     {
-        return view('jabatan.create');
+        return view('admin.jabatan.create');
     }
 
    public function store(Request $request)

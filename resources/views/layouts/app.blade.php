@@ -517,41 +517,39 @@
                         </li>
 
                         <!-- Presensi -->
-                        <li
-                            class="nav-item {{ Request::is('admin/presensi*', 'admin/lokasi-presensi*') ? 'menu-open' : '' }}">
-                            <a href="#"
-                                class="nav-link {{ Request::is('admin/presensi*', 'admin/lokasi-presensi*') ? 'active' : '' }}">
-                                <i class="nav-icon fas fa-calendar-check"></i>
-                                <p>
-                                    Presensi
-                                    <i class="right fas fa-angle-left"></i>
-                                </p>
-                            </a>
-                            <ul class="nav nav-treeview">
-                                <li class="nav-item">
-                                    <a href="{{ route('admin.lokasi-presensi.index') }}"
-                                        class="nav-link {{ Request::is('admin/lokasi-presensi*') ? 'active' : '' }}">
-                                        <i class="nav-icon fas fa-map-marker-alt text-success"></i>
-                                        <p>Lokasi Presensi</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ route('admin.presensi.index') }}"
-                                        class="nav-link {{ Request::is('admin/presensi*') ? 'active' : '' }}">
-                                        <i class="nav-icon fas fa-chart-bar text-info"></i>
-                                        <p>Rekap Presensi</p>
-                                    </a>
-                                </li>
-                                <!-- Tambahkan menu baru setelah menu Presensi -->
-                                <li class="nav-item">
-                                    <a href="{{ route('admin.presensi.monitoring') }}"
-                                        class="nav-link {{ Request::is('admin/presensi/monitoring*') ? 'active' : '' }}">
-                                        <i class="nav-icon fas fa-desktop"></i>
-                                        <p>Monitoring Presensi</p>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
+<!-- Presensi -->
+<li class="nav-item {{ Request::is('admin/presensi*', 'admin/lokasi-presensi*') ? 'menu-open' : '' }}">
+    <a href="#" class="nav-link {{ Request::is('admin/presensi*', 'admin/lokasi-presensi*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-calendar-check"></i>
+        <p>
+            Presensi
+            <i class="right fas fa-angle-left"></i>
+        </p>
+    </a>
+    <ul class="nav nav-treeview">
+        <li class="nav-item">
+            <a href="{{ route('admin.lokasi-presensi.index') }}"
+                class="nav-link {{ Request::is('admin/lokasi-presensi*') ? 'active' : '' }}">
+                <i class="nav-icon fas fa-map-marker-alt text-success"></i>
+                <p>Lokasi Presensi</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('admin.presensi.index') }}"
+                class="nav-link {{ Request::is('admin/presensi') || Request::is('admin/presensi/rekap*') ? 'active' : '' }}">
+                <i class="nav-icon fas fa-chart-bar text-info"></i>
+                <p>Rekap Presensi</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('admin.presensi.monitoring') }}"
+                class="nav-link {{ Request::is('admin/presensi/monitoring*') ? 'active' : '' }}">
+                <i class="nav-icon fas fa-desktop text-warning"></i>
+                <p>Monitoring Presensi</p>
+            </a>
+        </li>
+    </ul>
+</li>
 
 
                         <!-- Tambahkan menu File Manager -->

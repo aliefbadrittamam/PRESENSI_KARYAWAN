@@ -101,7 +101,7 @@ class KaryawanController extends Controller
     public function show(Karyawan $karyawan)
     {
         $karyawan->load(['jabatan', 'departemen', 'fakultas']);
-        return view('karyawan.show', compact('karyawan'));
+        return view('admin.karyawan.show', compact('karyawan'));
     }
 
     public function edit(Karyawan $karyawan)
