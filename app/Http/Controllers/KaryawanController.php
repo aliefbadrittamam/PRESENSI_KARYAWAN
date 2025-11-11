@@ -60,42 +60,41 @@ class KaryawanController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        // ✅ Generate random 6 digit password
-        // $randomPassword = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
-        
-        // ✅ Generate barcode token
         $barcode = Str::uuid()->toString();
 
-        // ✅ 1. Buat user baru dengan password random 6 digit
         $user = User::create([
             'name' => $request->nama_lengkap,
             'email' => $request->email,
-            // 'password' => bcrypt($randomPassword),
             'role' => 'user',
             'status' => 'active',
             'phone' => $request->nomor_telepon,
             'barcode_token' => $barcode,
         ]);
 
-        // ✅ 2. Siapkan data karyawan
-        $data = $request->all();
-        $data['user_id'] = $user->id;
+        $data = [
+            'nip' => $request->nip,
+            'nama_lengkap' => $request->nama_lengkap,
+            'jenis_kelamin' => $request->jenis_kelamin,
+            'tanggal_lahir' => $request->tanggal_lahir,
+            'email' => $request->email,
+            'nomor_telepon' => $request->nomor_telepon,
+            'id_jabatan' => $request->id_jabatan,
+            'id_departemen' => $request->id_departemen,
+            'id_fakultas' => $request->id_fakultas,
+            'tanggal_mulai_kerja' => $request->tanggal_mulai_kerja,
+            'tanggal_berhenti_kerja' => $request->tanggal_berhenti_kerja,
+            'status_aktif' => $request->has('status_aktif') ? true : false,
+            'user_id' => $user->id,
+        ];
 
-        // Handle status_aktif checkbox
-        $data['status_aktif'] = $request->has('status_aktif') ? true : false;
-
-        // ✅ 3. Handle upload foto
         if ($request->hasFile('foto')) {
             $fotoPath = $request->file('foto')->store('foto-karyawan', 'public');
             $data['foto'] = $fotoPath;
         }
 
-        // ✅ 4. Simpan data karyawan
         Karyawan::create($data);
 
-        return redirect()
-            ->route('admin.karyawan.index')
-            ->with('success', "Karyawan berhasil ditambahkan!");
+        return redirect()->route('admin.karyawan.index')->with('success', 'Karyawan berhasil ditambahkan!');
     }
 
     public function show(Karyawan $karyawan)
