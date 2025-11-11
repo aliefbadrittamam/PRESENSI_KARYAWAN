@@ -25,6 +25,9 @@ class FileManagerController extends Controller
         $search = $request->get('search', '');
         $fileType = $request->get('type', '');
         
+        // Fix: Normalize directory path (remove backslashes)
+        $directory = str_replace('\\', '/', $directory);
+        
         // Security check
         if (!empty($directory) && !$this->isAllowedDirectory($directory)) {
             return redirect()->route('admin.file-manager.index')
