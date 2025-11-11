@@ -234,7 +234,7 @@
                     </div>
                     <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-light border-opacity-25">
                         <small>Total Terlambat</small>
-                        <span class="badge bg-warning text-dark">{{ $terlambatBulanIni }}</span>
+                        <span class="badge bg-warning text-white">{{ $terlambatBulanIni }}</span>
                     </div>
                     <div class="d-flex justify-content-between">
                         <small>Rata-rata Keterlambatan</small>
