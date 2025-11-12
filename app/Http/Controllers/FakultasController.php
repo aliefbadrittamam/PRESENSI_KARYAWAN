@@ -47,12 +47,12 @@ class FakultasController extends Controller
     public function show($id)
     {
         $fakultas = Fakultas::with(['departemen', 'karyawan'])->findOrFail($id);
-        return view('fakultas.show', compact('fakultas'));
+        return view('admin.fakultas.show', compact('fakultas'));
     }
 
 public function edit(Fakultas $fakultas)
 {
-    return view('fakultas.edit', compact('fakultas'));
+    return view('admin.fakultas.edit', compact('fakultas'));
 }
 
 

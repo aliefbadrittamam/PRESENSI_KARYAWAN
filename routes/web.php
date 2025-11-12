@@ -151,7 +151,7 @@ Route::middleware(['auth'])
 
         // MASTER DATA
         Route::resource('fakultas', FakultasController::class)->parameters(['fakultas' => 'fakultas']);
-        Route::resource('departemen', DepartemenController::class);
+        Route::resource('departemen', DepartemenController::class)->parameters(['departemen' => 'departemen']);
         Route::resource('jabatan', JabatanController::class);
         Route::resource('karyawan', KaryawanController::class);
         Route::resource('shift', ShiftController::class);
