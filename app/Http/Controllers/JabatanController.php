@@ -43,7 +43,7 @@ class JabatanController extends Controller
 
     public function edit(Jabatan $jabatan)
     {
-    return view('jabatan.edit', compact('jabatan'));
+    return view('admin.jabatan.edit', compact('jabatan'));
     }
    public function update(Request $request, Jabatan $jabatan)
 {

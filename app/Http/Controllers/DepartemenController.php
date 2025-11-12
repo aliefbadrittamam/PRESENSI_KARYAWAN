@@ -39,20 +39,20 @@ class DepartemenController extends Controller
 
         Departemen::create($request->all());
 
-        return redirect()->route('admin.admin.departemen.index')
+        return redirect()->route('admin.departemen.index')
             ->with('success', 'Departemen berhasil ditambahkan.');
     }
 
     public function show(Departemen $departemen)
     {
     $departemen->load(['fakultas', 'karyawan', 'karyawan.jabatan']);
-    return view('departemen.show', compact('departemen'));
+    return view('admin.departemen.show', compact('departemen'));
     }
 
     public function edit(Departemen $departemen)
     {
     $fakultas = Fakultas::where('status_aktif', true)->get();
-    return view('departemen.edit', compact('departemen', 'fakultas'));
+    return view('admin.departemen.edit', compact('departemen', 'fakultas'));
     }
 
     public function update(Request $request, Departemen $departemen)
@@ -73,7 +73,7 @@ class DepartemenController extends Controller
 
         $departemen->update($request->all());
 
-        return redirect()->route('admin.admin.departemen.index')
+        return redirect()->route('admin.departemen.index')
             ->with('success', 'Departemen berhasil diperbarui.');
     }
 
