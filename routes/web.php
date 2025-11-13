@@ -165,9 +165,9 @@ Route::middleware(['auth'])
             ->name('presensi.')
             ->group(function () {
                 
-                // ========================================
-                // 🔥 PERBAIKAN: Gunakan AdminRekapPresensiController
-                // ========================================
+             
+
+                
                 Route::get('/rekap', [App\Http\Controllers\Admin\AdminRekapPresensiController::class, 'index'])->name('rekap');
                 Route::get('/rekap/download-pdf', [App\Http\Controllers\Admin\AdminRekapPresensiController::class, 'downloadPdf'])->name('download-pdf');
                 

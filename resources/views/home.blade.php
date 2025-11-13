@@ -424,7 +424,7 @@
                         <h6 class="mb-0">
                             <i class="fas fa-history me-2"></i>Presensi Terbaru Hari Ini
                         </h6>
-                        <a href="{{ route('admin.presensi.index') }}" class="btn btn-primary btn-sm">
+                        <a href="{{ route('admin.presensi.monitoring') }}" class="btn btn-primary btn-sm">
                             <i class="fas fa-eye me-1"></i>Semua
                         </a>
                     </div>
@@ -491,7 +491,7 @@
                                             @endif
                                         </td>
                                         <td class="text-center">
-                                            <a href="{{ route('admin.presensi.show', $presensi->id_presensi) }}"
+                                            <a href="{{ route('admin.presensi.monitoring.show', $presensi->id_presensi) }}"
                                                 class="btn btn-info btn-sm">
                                                 <i class="fas fa-eye"></i>
                                             </a>
