@@ -2,16 +2,16 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Admin\HomeController;
 use App\Http\Controllers\IzinController;
-use App\Http\Controllers\ShiftController;
-use App\Http\Controllers\JabatanController;
-use App\Http\Controllers\FakultasController;
-use App\Http\Controllers\KaryawanController;
-use App\Http\Controllers\PresensiController;
+use App\Http\Controllers\Admin\ShiftController;
+use App\Http\Controllers\Admin\JabatanController;
+use App\Http\Controllers\Admin\FakultasController;
+use App\Http\Controllers\Admin\KaryawanController;
+use App\Http\Controllers\Admin\PresensiController;
 use App\Http\Controllers\User\CutiController;
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\DepartemenController;
+use App\Http\Controllers\Admin\DepartemenController;
 use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\Auth\BarcodeLoginController;
 use App\Http\Controllers\Admin\LokasiPresensiController;
@@ -143,7 +143,6 @@ Route::middleware(['auth'])
     ->name('admin.')
     ->group(function () {
         // DASHBOARD ADMIN
-        // Route::get('/dashboard', [HomeController::class,php 'index'])->name('home');
         Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
 
         // Redirect /home ke /admin/dashboard untuk backward compatibility
@@ -165,9 +164,13 @@ Route::middleware(['auth'])
         Route::prefix('presensi')
             ->name('presensi.')
             ->group(function () {
-                Route::get('/', [PresensiController::class, 'index'])->name('index');
-                Route::get('/rekap', [PresensiController::class, 'rekap'])->name('rekap');
-                Route::get('/rekap/download-pdf', [PresensiController::class, 'downloadPdf'])->name('download-pdf');
+                
+                // ========================================
+                // 🔥 PERBAIKAN: Gunakan AdminRekapPresensiController
+                // ========================================
+                Route::get('/rekap', [App\Http\Controllers\Admin\AdminRekapPresensiController::class, 'index'])->name('rekap');
+                Route::get('/rekap/download-pdf', [App\Http\Controllers\Admin\AdminRekapPresensiController::class, 'downloadPdf'])->name('download-pdf');
+                
                 Route::get('/{id}', [PresensiController::class, 'show'])->name('show');
             });
 
@@ -181,6 +184,7 @@ Route::middleware(['auth'])
             ->where('path', '.*');
         Route::delete('/file-manager/delete', [App\Http\Controllers\Admin\FileManagerController::class, 'delete'])->name('file-manager.delete');
         Route::post('/file-manager/bulk-delete', [App\Http\Controllers\Admin\FileManagerController::class, 'bulkDelete'])->name('file-manager.bulk-delete');
+        
         // PENGAJUAN (IZIN & CUTI)
         Route::prefix('pengajuan')
             ->name('pengajuan.')

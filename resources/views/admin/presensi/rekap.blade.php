@@ -77,7 +77,7 @@
                                 <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-search"></i> Tampilkan Rekap
                                 </button>
-                                @if($rekapData)
+                                @if($rekapData && count($rekapData) > 0)
                                 <button type="button" class="btn btn-success" id="downloadPdfBtn">
                                     <i class="fas fa-file-pdf"></i> Download PDF
                                 </button>
@@ -88,7 +88,7 @@
                 </div>
             </div>
             
-            @if($rekapData)
+            @if($rekapData && count($rekapData) > 0)
             <div class="card mt-4">
                 <div class="card-header bg-success text-white">
                     <h5 class="mb-0">Hasil Rekap Presensi</h5>
@@ -115,7 +115,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($rekapData as $index => $data)
+                                @foreach($rekapData as $index => $data)
                                 <tr>
                                     <td>{{ $index + 1 }}</td>
                                     <td>{{ $data['karyawan']->nip }}</td>
@@ -155,13 +155,8 @@
                                     </td>
                                     <td class="text-center">{{ $data['total_jam_kerja'] }} jam</td>
                                 </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="14" class="text-center">Tidak ada data karyawan</td>
-                                </tr>
-                                @endforelse
+                                @endforeach
                             </tbody>
-                            @if(count($rekapData) > 0)
                             <tfoot class="thead-light">
                                 <tr>
                                     <th colspan="5" class="text-right">TOTAL:</th>
@@ -176,7 +171,6 @@
                                     <th class="text-center">{{ round(collect($rekapData)->sum('total_jam_kerja'), 2) }} jam</th>
                                 </tr>
                             </tfoot>
-                            @endif
                         </table>
                     </div>
                 </div>
@@ -184,8 +178,9 @@
             @else
             <div class="card mt-4">
                 <div class="card-body text-center py-5">
-                    <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">Silakan pilih filter dan klik "Tampilkan Rekap"</h5>
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Tidak ada data presensi untuk periode yang dipilih</h5>
+                    <p class="text-muted">Silakan pilih periode lain atau ubah filter</p>
                 </div>
             </div>
             @endif

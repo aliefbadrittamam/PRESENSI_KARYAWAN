@@ -535,7 +535,7 @@
             </a>
         </li>
         <li class="nav-item">
-            <a href="{{ route('admin.presensi.index') }}"
+            <a href="{{ route('admin.presensi.rekap') }}"
                 class="nav-link {{ Request::is('admin/presensi') || Request::is('admin/presensi/rekap*') ? 'active' : '' }}">
                 <i class="nav-icon fas fa-chart-bar text-info"></i>
                 <p>Rekap Presensi</p>
