@@ -129,43 +129,43 @@
 @endsection
 
 @push('scripts')
-<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY"></script>
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <script>
-function initMap() {
+$(document).ready(function() {
     const latitude = {{ $lokasi->latitude }};
     const longitude = {{ $lokasi->longitude }};
     const radius = {{ $lokasi->radius_meter }};
+    const namaLokasi = '{{ $lokasi->nama_lokasi }}';
     
-    const position = { lat: latitude, lng: longitude };
+    // Initialize map
+    const map = L.map('map').setView([latitude, longitude], 15);
     
-    const map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 15,
-        center: position,
-        mapTypeId: 'roadmap'
-    });
+    // Add tile layer (OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19
+    }).addTo(map);
     
-    // Marker
-    new google.maps.Marker({
-        position: position,
-        map: map,
-        title: '{{ $lokasi->nama_lokasi }}'
-    });
+    // Add marker
+    const marker = L.marker([latitude, longitude]).addTo(map);
+    marker.bindPopup(`<b>${namaLokasi}</b><br>Lat: ${latitude}<br>Lng: ${longitude}`).openPopup();
     
-    // Circle to show radius
-    new google.maps.Circle({
-        map: map,
-        center: position,
-        radius: radius,
+    // Add circle to show radius
+    L.circle([latitude, longitude], {
+        color: '#4CAF50',
         fillColor: '#4CAF50',
         fillOpacity: 0.2,
-        strokeColor: '#4CAF50',
-        strokeOpacity: 0.8,
-        strokeWeight: 2
-    });
-}
-
-$(document).ready(function() {
-    initMap();
+        radius: radius
+    }).addTo(map);
+    
+    // Fit map to show the entire circle
+    const bounds = L.circle([latitude, longitude], radius).getBounds();
+    map.fitBounds(bounds);
 });
 </script>
 @endpush

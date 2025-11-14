@@ -275,47 +275,165 @@
 @endsection
 
 @push('scripts')
-<script>
-    $(document).ready(function() {
-        // Auto-format kode fakultas to uppercase
-        $('#kode_fakultas').on('input', function() {
-            this.value = this.value.toUpperCase();
+    <!-- Leaflet JS - MUST be loaded after CSS and before initialization -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
+            crossorigin=""></script>
+    
+    <script>
+        // CRITICAL: Wait for ALL resources to load including CSS
+        window.addEventListener('load', function() {
+            // Additional delay to ensure DOM is fully ready
+            setTimeout(initMap, 250);
         });
 
-        // Auto-capitalize each word in nama fakultas
-        $('#nama_fakultas').on('input', function() {
-            this.value = this.value.replace(/\w\S*/g, function(txt) {
-                return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-            });
-        });
+        function initMap() {
+            console.log('Initializing map...');
+            
+            // Get input elements
+            const latInput = document.getElementById('latitude');
+            const lngInput = document.getElementById('longitude');
+            const radiusInput = document.getElementById('radius_meter');
 
-        // Show warning when deactivating faculty with relations
-        $('#status_aktif').on('change', function() {
-            if (!this.checked) {
-                const departemenCount = {{ $fakultas->departemen->count() }};
-                const karyawanCount = {{ $fakultas->karyawan->count() }};
-                
-                if (departemenCount > 0 || karyawanCount > 0) {
-                    const message = `Fakultas ini memiliki ${departemenCount} departemen dan ${karyawanCount} karyawan.\n\nYakin ingin menonaktifkan fakultas ini?`;
+            // Parse coordinates with fallback
+            const defaultLat = parseFloat(latInput.value) || -7.2575;
+            const defaultLng = parseFloat(lngInput.value) || 112.7521;
+            const defaultRadius = parseInt(radiusInput.value) || 100;
+
+            console.log('Default coordinates:', defaultLat, defaultLng);
+
+            // Check if map container exists
+            const mapContainer = document.getElementById('map');
+            if (!mapContainer) {
+                console.error('Map container not found!');
+                return;
+            }
+
+            // Clear any existing map instance
+            mapContainer.innerHTML = '';
+            mapContainer._leaflet_id = null;
+
+            try {
+                // Initialize map with explicit configuration
+                const map = L.map('map', {
+                    center: [defaultLat, defaultLng],
+                    zoom: 16,
+                    zoomControl: true,
+                    scrollWheelZoom: true,
+                    doubleClickZoom: true,
+                    touchZoom: true,
+                    dragging: true,
+                    attributionControl: true,
+                    preferCanvas: false
+                });
+
+                console.log('Map initialized successfully');
+
+                // Add OpenStreetMap tile layer
+                const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                    maxZoom: 19,
+                    minZoom: 5,
+                    subdomains: ['a', 'b', 'c'],
+                    crossOrigin: true
+                });
+
+                tileLayer.addTo(map);
+                console.log('Tile layer added');
+
+                // Add draggable marker
+                const marker = L.marker([defaultLat, defaultLng], {
+                    draggable: true,
+                    autoPan: true
+                }).addTo(map);
+
+                marker.bindPopup('<strong>Lokasi Presensi</strong><br>Drag marker untuk memindahkan').openPopup();
+
+                // Add radius circle
+                const circle = L.circle([defaultLat, defaultLng], {
+                    radius: defaultRadius,
+                    color: '#007bff',
+                    fillColor: '#007bff',
+                    fillOpacity: 0.15,
+                    weight: 2
+                }).addTo(map);
+
+                console.log('Marker and circle added');
+
+                // Event: Marker drag end
+                marker.on('dragend', function() {
+                    const pos = marker.getLatLng();
+                    latInput.value = pos.lat.toFixed(8);
+                    lngInput.value = pos.lng.toFixed(8);
+                    circle.setLatLng(pos);
                     
-                    if (!confirm(message)) {
-                        this.checked = true;
+                    marker.setPopupContent(
+                        `<strong>Lokasi Dipindahkan</strong><br>` +
+                        `Lat: ${pos.lat.toFixed(6)}<br>` +
+                        `Lng: ${pos.lng.toFixed(6)}`
+                    ).openPopup();
+                });
+
+                // Event: Map click
+                map.on('click', function(e) {
+                    const pos = e.latlng;
+                    marker.setLatLng(pos);
+                    circle.setLatLng(pos);
+                    latInput.value = pos.lat.toFixed(8);
+                    lngInput.value = pos.lng.toFixed(8);
+                    
+                    marker.setPopupContent(
+                        `<strong>Lokasi Baru</strong><br>` +
+                        `Lat: ${pos.lat.toFixed(6)}<br>` +
+                        `Lng: ${pos.lng.toFixed(6)}`
+                    ).openPopup();
+                });
+
+                // Update marker from manual input
+                function updateMarkerFromInput() {
+                    const lat = parseFloat(latInput.value);
+                    const lng = parseFloat(lngInput.value);
+                    
+                    if (!isNaN(lat) && !isNaN(lng) && 
+                        lat >= -90 && lat <= 90 && 
+                        lng >= -180 && lng <= 180) {
+                        const pos = L.latLng(lat, lng);
+                        marker.setLatLng(pos);
+                        circle.setLatLng(pos);
+                        map.setView(pos, map.getZoom());
                     }
                 }
-            }
-        });
 
-        // Form validation
-        $('#formEditFakultas').on('submit', function(e) {
-            const kode = $('#kode_fakultas').val();
-            const nama = $('#nama_fakultas').val();
-            
-            if (!kode || !nama) {
-                e.preventDefault();
-                alert('Mohon lengkapi semua field yang wajib diisi (*)');
-                return false;
+                latInput.addEventListener('change', updateMarkerFromInput);
+                lngInput.addEventListener('change', updateMarkerFromInput);
+
+                // Update radius on input change
+                radiusInput.addEventListener('input', function() {
+                    const radius = parseInt(this.value) || 100;
+                    circle.setRadius(radius);
+                });
+
+                // Force map to recalculate size (CRITICAL)
+                setTimeout(function() {
+                    map.invalidateSize();
+                    console.log('Map size invalidated');
+                }, 100);
+
+                // Handle window resize
+                let resizeTimer;
+                window.addEventListener('resize', function() {
+                    clearTimeout(resizeTimer);
+                    resizeTimer = setTimeout(function() {
+                        map.invalidateSize();
+                    }, 250);
+                });
+
+                console.log('Map initialization complete!');
+
+            } catch (error) {
+                console.error('Error initializing map:', error);
+                alert('Gagal menginisialisasi peta. Silakan refresh halaman.');
             }
-        });
-    });
-</script>
+        }
+    </script>
 @endpush
