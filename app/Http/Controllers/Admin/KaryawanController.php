@@ -15,11 +15,48 @@ use Illuminate\Support\Facades\Validator;
 
 class KaryawanController extends Controller
 {
-    public function index()
-    {
-        $karyawan = Karyawan::with(['jabatan', 'departemen', 'fakultas'])->paginate(10);
-        return view('admin.karyawan.index', compact('karyawan'));
+   public function index(Request $request)
+{
+    $query = Karyawan::with(['jabatan', 'departemen', 'fakultas', 'user']);
+    
+    // Filter by Status
+    if ($request->filled('status')) {
+        $query->where('status_aktif', $request->status);
     }
+    
+    // Filter by Jabatan
+    if ($request->filled('jabatan')) {
+        $query->where('id_jabatan', $request->jabatan);
+    }
+    
+    // Filter by Departemen
+    if ($request->filled('departemen')) {
+        $query->where('id_departemen', $request->departemen);
+    }
+    
+    // Filter by Fakultas
+    if ($request->filled('fakultas')) {
+        $query->where('id_fakultas', $request->fakultas);
+    }
+    
+    // Search by NIP or Nama
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function($q) use ($search) {
+            $q->where('nip', 'like', "%{$search}%")
+              ->orWhere('nama_lengkap', 'like', "%{$search}%");
+        });
+    }
+    
+    $karyawan = $query->paginate(10)->withQueryString();
+    
+    // Get filter options
+    $jabatanList = Jabatan::all();
+    $departemenList = Departemen::where('status_aktif', true)->get();
+    $fakultasList = Fakultas::where('status_aktif', true)->get();
+    
+    return view('admin.karyawan.index', compact('karyawan', 'jabatanList', 'departemenList', 'fakultasList'));
+}
 
     public function create()
     {

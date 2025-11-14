@@ -23,7 +23,7 @@ return new class extends Migration
             $table->date('tanggal_mulai_kerja');
             $table->date('tanggal_berhenti_kerja')->nullable();
             $table->string('foto')->nullable();
-            $table->text('template_face_id')->nullable();
+            // $table->text('template_face_id')->nullable();
             $table->enum('status_verifikasi_face_id', ['pending', 'verified', 'failed'])->default('pending');
             $table->timestamp('tanggal_verifikasi_face_id')->nullable();
             $table->timestamps();
