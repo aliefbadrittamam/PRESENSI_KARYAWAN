@@ -3,541 +3,527 @@
 @section('title', 'Data Karyawan')
 @section('icon', 'fa-users')
 
-@push('styles')
-    <style>
-        /* Pastikan modal selalu di depan */
-        .modal-backdrop {
-            z-index: 1040 !important;
-        }
-
-        .modal {
-            z-index: 1050 !important;
-        }
-
-        .modal-dialog {
-            z-index: 1060 !important;
-        }
-
-        .modal-content {
-            background-color: #ffffff !important;
-            text-align: right;
-            border-radius: 10px;
-            padding: 20px;
-        }
-
-        .modal-backdrop.show {
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-
-
-        /* Modal body centering */
-        .modal-body-center {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 30px;
-        }
-
-        /* QR Card Container - yang akan di-download */
- .qr-download-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-        /* QR Card dengan border putih sebagai pembungkus */
-        .qr-card {
-            background: white;
-            border: 15px solid #ffffff;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            border-radius: 12px;
-            padding: 30px 25px;
-            display: inline-block;
-            max-width: 380px;
-                text-align: right;
-
-        }
-
-        .qr-header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .qr-header h3 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #2c3e50;
-            margin: 0 0 8px 0;
-        }
-
-        .qr-header p {
-            font-size: 0.95rem;
-            color: #7f8c8d;
-            margin: 0;
-        }
-
-        /* QR Code Container dengan background putih */
-        #qrcodeContainer {
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 8px;
-            display: inline-block;
-            border: 2px solid #ecf0f1;
-        }
-
-        #qrcodeContainer canvas,
-        #qrcodeContainer img {
-            display: block;
-            margin: 0 auto;
-        }
-
-        /* Debug info styling */
-        .debug-info {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            padding: 12px;
-            margin-top: 20px;
-            font-size: 0.85rem;
-            text-align: left;
-            max-height: 150px;
-            overflow-y: auto;
-            width: 100%;
-        }
-
-        .debug-info strong {
-            color: #495057;
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .debug-info small {
-            display: block;
-            margin: 3px 0;
-            word-break: break-all;
-        }
-
-        .debug-info code {
-            background: #e9ecef;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 0.75rem;
-            color: #e74c3c;
-        }
-    </style>
-@endpush
-
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="text-white mb-0"><i class="fas fa-users me-2"></i>Data Karyawan</h4>
-        <a href="{{ route('admin.karyawan.create') }}" class="btn btn-primary-modern btn-modern">
-            <i class="fas fa-plus-circle me-2"></i>Tambah Karyawan
-        </a>
-    </div>
+<div class="row g-2">
+    <div class="col-12">
+        <div class="card border-0">
+            <div class="card-header bg-dark text-white border-0 py-2">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="fas fa-users me-2"></i>Daftar Karyawan
+                    </h6>
+                    <a href="{{ route('admin.karyawan.create') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus me-1"></i>Tambah Karyawan
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-3">
+                <!-- Filter Section -->
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <select class="form-select form-select-sm bg-dark text-white border-secondary" id="filterStatus">
+                            <option value="">Semua Status</option>
+                            <option value="1">Aktif</option>
+                            <option value="0">Non-Aktif</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select form-select-sm bg-dark text-white border-secondary" id="filterJabatan">
+                            <option value="">Semua Jabatan</option>
+                            @foreach(\App\Models\Jabatan::all() as $jab)
+                                <option value="{{ $jab->id_jabatan }}">{{ $jab->nama_jabatan }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select form-select-sm bg-dark text-white border-secondary" id="filterFakultas">
+                            <option value="">Semua Fakultas</option>
+                            @foreach(\App\Models\Fakultas::all() as $fak)
+                                <option value="{{ $fak->id_fakultas }}">{{ $fak->nama_fakultas }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="button" class="btn btn-secondary btn-sm w-100" id="resetFilter">
+                            <i class="fas fa-redo me-1"></i>Reset Filter
+                        </button>
+                    </div>
+                </div>
 
-    <div class="card-modern">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-modern table-hover">
-                    <thead>
-                        <tr>
-                            <th width="50">#</th>
-                            <th>NIP</th>
-                            <th>Nama Lengkap</th>
-                            <th>Jabatan</th>
-                            <th>Departemen</th>
-                            <th>Fakultas</th>
-                            <th>Status</th>
-                            <th width="120" class="text-center">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($karyawan as $item)
+                <!-- Table -->
+                <div class="table-responsive">
+                    <table id="karyawanTable" class="table table-hover table-dark table-striped mb-0">
+                        <thead class="bg-gradient-primary">
                             <tr>
-                                <td class="text-center">{{ $loop->iteration }}</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        @if ($item->foto)
-                                            <img src="{{ asset('storage/' . $item->foto) }}" class="rounded-circle me-2"
-                                                width="32" height="32" alt="{{ $item->nama_lengkap }}">
+                                <th class="text-center" style="width: 50px;">#</th>
+                                <th class="text-center" style="width: 80px;">Foto</th>
+                                <th style="width: 120px;">NIP</th>
+                                <th>Nama Lengkap</th>
+                                <th>Jabatan</th>
+                                <th>Departemen</th>
+                                <th>Fakultas</th>
+                                <th class="text-center" style="width: 100px;">Status</th>
+                                <th class="text-center" style="width: 200px;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($karyawan as $index => $k)
+                                <tr>
+                                    <td class="text-center">{{ $karyawan->firstItem() + $index }}</td>
+                                    <td class="text-center">
+                                        @if($k->foto)
+                                            <img src="{{ asset('storage/' . $k->foto) }}" 
+                                                 class="rounded-circle" 
+                                                 width="45" 
+                                                 height="45" 
+                                                 style="object-fit: cover; border: 2px solid #007bff;"
+                                                 alt="{{ $k->nama_lengkap }}">
                                         @else
-                                            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-2"
-                                                style="width: 32px; height: 32px;">
+                                            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center mx-auto" 
+                                                 style="width: 45px; height: 45px; border: 2px solid #007bff;">
                                                 <i class="fas fa-user text-white"></i>
                                             </div>
                                         @endif
-                                        <strong>{{ $item->nip }}</strong>
-                                    </div>
-                                </td>
-                                <td>{{ $item->nama_lengkap }}</td>
-                                <td>
-                                    <span class="badge bg-info badge-modern">{{ $item->jabatan->nama_jabatan }}</span>
-                                </td>
-                                <td>{{ $item->departemen->nama_departemen }}</td>
-                                <td>{{ $item->fakultas->nama_fakultas }}</td>
-                                <td>
-                                    <span class="badge bg-{{ $item->status_aktif ? 'success' : 'danger' }} badge-modern">
-                                        <i class="fas fa-{{ $item->status_aktif ? 'check' : 'times' }}-circle me-1"></i>
-                                        {{ $item->status_aktif ? 'Aktif' : 'Non-Aktif' }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <a href="{{ route('admin.karyawan.show', $item->id_karyawan) }}"
-                                            class="btn btn-info btn-modern" data-bs-toggle="tooltip" title="Detail">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a href="{{ route('admin.karyawan.edit', $item->id_karyawan) }}"
-                                            class="btn btn-warning btn-modern" data-bs-toggle="tooltip" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <button type="button" class="btn btn-secondary btn-modern"
-                                            onclick="showQRCodeModal('{{ addslashes($item->nama_lengkap) }}', '{{ $item->nip }}', '{{ $item->user->barcode_token ?? '' }}')"
-                                            data-bs-toggle="tooltip" title="Lihat QR Code">
-                                            <i class="fas fa-qrcode"></i>
-                                        </button>
-
-                                        <form action="{{ route('admin.karyawan.destroy', $item->id_karyawan) }}" method="POST"
-                                            class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-modern"
-                                                data-bs-toggle="tooltip" title="Hapus"
-                                                onclick="return confirm('Apakah Anda yakin ingin menghapus karyawan ini?')">
-                                                <i class="fas fa-trash"></i>
+                                    </td>
+                                    <td><strong>{{ $k->nip }}</strong></td>
+                                    <td>{{ $k->nama_lengkap }}</td>
+                                    <td>
+                                        <span class="badge bg-info">
+                                            {{ $k->jabatan->nama_jabatan ?? '-' }}
+                                        </span>
+                                    </td>
+                                    <td>{{ $k->departemen->nama_departemen ?? '-' }}</td>
+                                    <td>{{ $k->fakultas->nama_fakultas ?? '-' }}</td>
+                                    <td class="text-center">
+                                        @if($k->status_aktif)
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i>Aktif
+                                            </span>
+                                        @else
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-times-circle me-1"></i>Non-Aktif
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <!-- Lihat -->
+                                            <a href="{{ route('admin.karyawan.show', $k->id_karyawan) }}" 
+                                               class="btn btn-info" 
+                                               data-bs-toggle="tooltip" 
+                                               title="Lihat Detail">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            
+                                            <!-- Edit -->
+                                            <a href="{{ route('admin.karyawan.edit', $k->id_karyawan) }}" 
+                                               class="btn btn-warning" 
+                                               data-bs-toggle="tooltip" 
+                                               title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            
+                                            <!-- QR Code -->
+                                            <button type="button" 
+                                                    class="btn btn-primary btn-qrcode" 
+                                                    data-id="{{ $k->id_karyawan }}"
+                                                    data-nip="{{ $k->nip }}"
+                                                    data-nama="{{ $k->nama_lengkap }}"
+                                                    data-token="{{ $k->user->barcode_token ?? '' }}"
+                                                    data-bs-toggle="tooltip" 
+                                                    title="Generate QR Code">
+                                                <i class="fas fa-qrcode"></i>
                                             </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="8" class="text-center py-4">
-                                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
-                                    <p class="text-muted">Tidak ada data karyawan.</p>
-                                    <a href="{{ route('admin.karyawan.create') }}" class="btn btn-primary-modern btn-modern">
-                                        <i class="fas fa-plus me-2"></i>Tambah Karyawan Pertama
-                                    </a>
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-
-            @if ($karyawan->hasPages())
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <div class="text-muted">
-                        Menampilkan {{ $karyawan->firstItem() }} - {{ $karyawan->lastItem() }} dari
-                        {{ $karyawan->total() }} data
-                    </div>
-                    {{ $karyawan->links() }}
+                                            
+                                            <!-- Hapus -->
+                                            <form action="{{ route('admin.karyawan.destroy', $k->id_karyawan) }}" 
+                                                  method="POST" 
+                                                  class="d-inline delete-form">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" 
+                                                        class="btn btn-danger" 
+                                                        data-bs-toggle="tooltip" 
+                                                        title="Hapus">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="9" class="text-center py-4">
+                                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                                        <p class="text-muted">Belum ada data karyawan</p>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
-            @endif
-        </div>
-    </div>
-@endsection
-{{-- modal --}}
-<div class="modal fade" id="qrcodeModal" tabindex="-1" aria-labelledby="qrcodeModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content bg-white border-0 shadow-lg rounded-4 text-end">
 
-      <!-- Header -->
-      <div class="modal-header bg-primary text-white border-0">
-        <h5 class="modal-title w-100 text-end" id="qrcodeModalLabel">
-          <i class="fas fa-qrcode ms-2"></i> QR Code Karyawan
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-
-      <!-- Body -->
-      <div class="modal-body">
-
-        {{-- Wrapper untuk download --}}
-        <div class="qr-download-wrapper d-flex justify-content-center" id="qrDownloadWrapper">
-          {{-- QR Card --}}
-          <div class="qr-card bg-white border rounded-3 p-4 shadow-sm text-end">
-            <div class="qr-header mb-3">
-              <h3 id="namaKaryawan" class="mb-0">—</h3>
-              <p id="nipKaryawan" class="text-muted mb-0">—</p>
+                <!-- Pagination -->
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div class="text-muted small">
+                        Menampilkan {{ $karyawan->firstItem() ?? 0 }} - {{ $karyawan->lastItem() ?? 0 }} 
+                        dari {{ $karyawan->total() }} data
+                    </div>
+                    <div>
+                        {{ $karyawan->links('pagination::bootstrap-5') }}
+                    </div>
+                </div>
             </div>
-            <div id="qrcodeContainer"></div>
-          </div>
         </div>
-
-        {{-- Debug Info --}}
-        <div id="debugInfo" class="debug-info mt-4 text-end" style="display: block;">
-          <strong>Debug Info:</strong><br>
-          <small>Token: <code id="debugToken">—</code></small><br>
-          <small>URL: <code id="debugUrl">—</code></small>
-        </div>
-
-        {{-- Tombol Aksi --}}
-        <div class="mt-4 d-flex justify-content-end gap-2">
-          <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
-            <i class="fas fa-times me-1"></i> Tutup
-          </button>
-          <button class="btn btn-outline-primary" id="printQRCode">
-            <i class="fas fa-print me-1"></i> Cetak
-          </button>
-          <button class="btn btn-outline-success" id="downloadQRCode">
-            <i class="fas fa-download me-1"></i> Download
-          </button>
-        </div>
-
-      </div>
     </div>
-  </div>
 </div>
 
+<!-- Modal QR Code -->
+<div class="modal fade" id="qrcodeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">
+                    <i class="fas fa-qrcode me-2"></i>QR Code Login Karyawan
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center bg-white">
+                <div class="p-4">
+                    <h6 class="text-dark mb-3">
+                        <strong id="qrNama"></strong>
+                    </h6>
+                    <div class="badge bg-primary mb-3">
+                        NIP: <span id="qrNip"></span>
+                    </div>
+                    
+                    <!-- QR Code Container -->
+                    <div id="qrcodeContainer" class="d-flex justify-content-center align-items-center my-3" 
+                         style="min-height: 250px;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    
+                    <!-- URL Display -->
+                    <div class="alert alert-secondary small mb-2" role="alert">
+                        <i class="fas fa-link me-1"></i>
+                        <strong>URL:</strong> 
+                        <span id="qrUrl" class="text-break"></span>
+                    </div>
+                    
+                    <div class="alert alert-info small mb-0" role="alert">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Scan QR Code ini untuk login sebagai karyawan
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Tutup
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" id="downloadQR">
+                    <i class="fas fa-download me-1"></i>Download QR Code
+                </button>
+                <button type="button" class="btn btn-success btn-sm" id="printQR">
+                    <i class="fas fa-print me-1"></i>Print
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('css')
+<style>
+    /* Dark Theme Table */
+    .table-dark {
+        --bs-table-bg: #2d3236;
+        --bs-table-striped-bg: #343a40;
+        --bs-table-hover-bg: #3a3d41;
+        color: #fff;
+    }
+    
+    .table-dark thead {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    }
+    
+    /* Button Group */
+    .btn-group-sm > .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    /* Filter */
+    .form-select, .form-control {
+        background-color: #2d3236 !important;
+        border-color: #4a5056 !important;
+        color: #fff !important;
+    }
+    
+    .form-select:focus, .form-control:focus {
+        background-color: #343a40 !important;
+        border-color: #007bff !important;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+    }
+    
+    .form-select option {
+        background-color: #2d3236 !important;
+    }
+    
+    /* Pagination */
+    .pagination {
+        --bs-pagination-bg: #2d3236;
+        --bs-pagination-border-color: #4a5056;
+        --bs-pagination-hover-bg: #343a40;
+        --bs-pagination-hover-border-color: #007bff;
+        --bs-pagination-focus-bg: #343a40;
+        --bs-pagination-active-bg: #007bff;
+        --bs-pagination-active-border-color: #007bff;
+    }
+    
+    /* Modal */
+    .modal-content.bg-dark {
+        border: 1px solid #4a5056;
+    }
+    
+    /* Badge */
+    .badge {
+        padding: 0.375rem 0.75rem;
+        font-weight: 500;
+    }
+    
+    /* Animation */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .card {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .btn-group {
+            flex-direction: column;
+        }
+        
+        .table-responsive {
+            font-size: 0.875rem;
+        }
+    }
+</style>
+@endpush
+
 @push('scripts')
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Inisialisasi tooltip (Bootstrap)
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(function(tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
+<!-- QRCode.js Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+  
+    $('#karyawanTable').DataTable({
+        "paging": false,
+        "searching": true,
+        "ordering": true,
+        "info": false,
+        "language": {
+            "search": "Cari:",
+            "emptyTable": "Tidak ada data karyawan"
+        }
+    });
+    
+    
+    // Delete confirmation
+    $('.delete-form').on('submit', function(e) {
+        e.preventDefault();
+        
+        if(confirm('Apakah Anda yakin ingin menghapus karyawan ini? Data yang terhapus tidak dapat dikembalikan.')) {
+            this.submit();
+        }
+    });
+    
+    // QR Code Generator
+    let currentQRCode = null;
+    let currentQRUrl = '';
+    
+    $('.btn-qrcode').on('click', function() {
+        const nip = $(this).data('nip');
+        const nama = $(this).data('nama');
+        const token = $(this).data('token');
+        
+        if(!token) {
+            alert('Token tidak tersedia untuk karyawan ini');
+            return;
+        }
+        
+        // Set modal content
+        $('#qrNip').text(nip);
+        $('#qrNama').text(nama);
+        
+        // Generate QR URL - Otomatis menyesuaikan dengan environment saat ini
+     
+        // Ini akan otomatis detect protocol (http/https) dan domain yang sedang diakses
+        const baseUrl = window.location.origin;
+        currentQRUrl = `${baseUrl}/barcode-login/${token}`;
+        
+   
+        
+        console.log('QR Code URL:', currentQRUrl); // Untuk debugging
+        console.log('Environment:', window.location.hostname); // Untuk cek environment
+        
+        // Display URL in modal
+        $('#qrUrl').text(currentQRUrl);
+        
+        // Show modal
+        $('#qrcodeModal').modal('show');
+        
+        // Clear previous QR code
+        $('#qrcodeContainer').html('<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>');
+        
+        // Generate new QR code with delay for modal animation
+        setTimeout(function() {
+            $('#qrcodeContainer').html('');
+            
+            currentQRCode = new QRCode(document.getElementById("qrcodeContainer"), {
+                text: currentQRUrl,
+                width: 250,
+                height: 250,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
             });
-
-            // Element modal dan modal instance (inisialisasi sekali)
-            const qrcodeModalEl = document.getElementById('qrcodeModal');
-            const qrcodeModal = new bootstrap.Modal(qrcodeModalEl, {
-                backdrop: true,
-                keyboard: true,
-                focus: true
-            });
-
-            // Tombol-tombol close fallback (memanggil hide() jika data-bs-dismiss gagal)
-            // Cari tombol yang menutup modal: btn-close & tombol dengan data-bs-dismiss="modal"
-            qrcodeModalEl.querySelectorAll('[data-bs-dismiss="modal"], .btn-close').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    // Pastikan modal disembunyikan via instance
-                    try {
-                        qrcodeModal.hide();
-                    } catch (err) {
-                        /* ignore */
-                    }
-                });
-            });
-
-            // Variables untuk QRCode instance
-            let currentQRCode = null;
-
-            // Ketika modal benar-benar tersembunyi -> bersihkan DOM QR
-            qrcodeModalEl.addEventListener('hidden.bs.modal', function() {
-                const qrcodeContainer = document.getElementById('qrcodeContainer');
-                qrcodeContainer.innerHTML = '';
-                // Jika library QR punya method clear, panggil (safe-check)
-                try {
-                    if (currentQRCode && typeof currentQRCode.clear === 'function') {
-                        currentQRCode.clear();
-                    }
-                } catch (e) {
-                    // ignore
-                }
-                currentQRCode = null;
-                console.log('Modal closed - QR Code cleared');
-            });
-
-            // Fungsi untuk menampilkan modal dan generate QR
-            window.showQRCodeModal = function(nama, nip, qrcodeToken) {
-                console.log('showQRCodeModal', {
-                    nama,
-                    nip,
-                    qrcodeToken
-                });
-
-                // Set data karyawan
-                document.getElementById('namaKaryawan').textContent = nama || '—';
-                document.getElementById('nipKaryawan').textContent = nip ? ('NIP: ' + nip) : '—';
-
-                const qrcodeContainer = document.getElementById('qrcodeContainer');
-                const debugInfo = document.getElementById('debugInfo');
-                const debugToken = document.getElementById('debugToken');
-                const debugUrl = document.getElementById('debugUrl');
-
-                // Reset container dan instance lama jika ada
-                qrcodeContainer.innerHTML = '';
-                if (currentQRCode && typeof currentQRCode.clear === 'function') {
-                    try {
-                        currentQRCode.clear();
-                    } catch (e) {
-                        /* ignore */
-                    }
-                }
-                currentQRCode = null;
-
-                // Validasi token
-                if (!qrcodeToken || !qrcodeToken.toString().trim()) {
-                    qrcodeContainer.innerHTML =
-                        '<div class="text-danger p-3"><i class="fas fa-exclamation-triangle mb-2"></i><br>QR Code token tidak tersedia.<br><small>Silakan generate token terlebih dahulu.</small></div>';
-                    debugToken.textContent = 'Token kosong';
-                    debugUrl.textContent = '—';
-                    qrcodeModal.show();
-                    return;
-                }
-
-                // Generate URL lengkap
-                const baseUrl = window.location.origin;
-                const loginUrl = baseUrl + '/barcode-login/' + encodeURIComponent(qrcodeToken);
-
-                debugToken.textContent = qrcodeToken;
-                debugUrl.textContent = loginUrl;
-
-                try {
-                    // Pastikan container kosong sebelum pembuatan baru
-                    qrcodeContainer.innerHTML = '';
-
-                    // Buat QRCode
-                    currentQRCode = new QRCode(qrcodeContainer, {
-                        text: loginUrl,
-                        width: 280,
-                        height: 280,
-                        colorDark: "#000000",
-                        colorLight: "#ffffff",
-                        correctLevel: QRCode.CorrectLevel.H
-                    });
-
-                    console.log('QR Code generated:', loginUrl);
-
-                    // Tampilkan modal segera setelah QR dibuat
-                    // setTimeout kecil tetap aman untuk memberi waktu render pada beberapa browser
-                    setTimeout(function() {
-                        qrcodeModal.show();
-                    }, 50);
-
-                } catch (err) {
-                    console.error('QRCode generation error:', err);
-                    qrcodeContainer.innerHTML =
-                        '<div class="text-danger p-3"><i class="fas fa-times-circle mb-2"></i><br>Gagal generate QR Code.<br><small>Error: ' +
-                        (err.message || err) + '</small></div>';
-                    qrcodeModal.show();
-                }
-            };
-
-            // Download QR Code
-            document.getElementById('downloadQRCode').addEventListener('click', function() {
-                const wrapper = document.getElementById('qrDownloadWrapper');
-                if (!wrapper) {
-                    alert('Tidak ada QR Code untuk diunduh.');
-                    return;
-                }
-
-                const debugInfo = document.getElementById('debugInfo');
-                const debugDisplay = debugInfo.style.display;
-                debugInfo.style.display = 'none';
-
-                html2canvas(wrapper, {
-                    backgroundColor: '#ffffff',
-                    scale: 3,
-                    logging: false,
-                    useCORS: true
-                }).then(canvas => {
-                    // restore debug
-                    debugInfo.style.display = debugDisplay;
-
-                    canvas.toBlob(function(blob) {
-                        if (!blob) {
-                            alert('Gagal mengkonversi QR Code.');
-                            return;
-                        }
-
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-
-                        const nipText = document.getElementById('nipKaryawan').textContent
-                            .replace(/NIP:\s*/gi, '')
-                            .replace(/\s+/g, '_')
-                            .replace(/[^a-zA-Z0-9_-]/g, '') || 'karyawan';
-
-                        a.download = `QRCode_${nipText}.png`;
-                        document.body.appendChild(a);
-                        a.click();
-                        a.remove();
-                        URL.revokeObjectURL(url);
-                        console.log('QR Code downloaded');
-                    }, 'image/png');
-                }).catch(err => {
-                    debugInfo.style.display = debugDisplay;
-                    console.error('html2canvas error:', err);
-                    alert('Gagal download QR Code. Error: ' + (err.message || err));
-                });
-            });
-
-            // Print QR Code (mendukung canvas atau img)
-            document.getElementById('printQRCode').addEventListener('click', function() {
-                const qrcodeCanvas = document.querySelector('#qrcodeContainer canvas');
-                const qrcodeImg = document.querySelector('#qrcodeContainer img');
-                let dataUrl = null;
-
-                if (qrcodeCanvas) {
-                    try {
-                        dataUrl = qrcodeCanvas.toDataURL('image/png');
-                    } catch (e) {
-                        dataUrl = null;
-                    }
-                } else if (qrcodeImg) {
-                    dataUrl = qrcodeImg.src;
-                }
-
-                if (!dataUrl) {
-                    alert('Tidak ada QR Code untuk dicetak.');
-                    return;
-                }
-
-                const nama = document.getElementById('namaKaryawan').textContent || '';
-                const nip = document.getElementById('nipKaryawan').textContent || '';
-
-                const printWindow = window.open('', '_blank', 'width=800,height=600');
-                if (!printWindow) {
-                    alert('Pop-up diblokir. Izinkan pop-up untuk mencetak.');
-                    return;
-                }
-
-                printWindow.document.open();
-                printWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
+        }, 300);
+    });
+    
+    // Download QR Code
+    $('#downloadQR').on('click', function() {
+        const canvas = $('#qrcodeContainer canvas')[0];
+        if(canvas) {
+            const url = canvas.toDataURL("image/png");
+            const link = document.createElement('a');
+            link.download = `QRCode_${$('#qrNip').text()}.png`;
+            link.href = url;
+            link.click();
+        } else {
+            alert('QR Code belum dibuat');
+        }
+    });
+    
+    // Print QR Code
+    $('#printQR').on('click', function() {
+        const nip = $('#qrNip').text();
+        const nama = $('#qrNama').text();
+        const canvas = $('#qrcodeContainer canvas')[0];
+        
+        if(canvas) {
+            const url = canvas.toDataURL("image/png");
+            
+            const printWindow = window.open('', '', 'width=600,height=600');
+            printWindow.document.write(`
+                <html>
                 <head>
-                    <meta charset="utf-8"/>
-                    <title>Cetak QR Code - ${nama}</title>
+                    <title>QR Code - ${nip}</title>
                     <style>
-                        *{box-sizing:border-box;margin:0;padding:0}
-                        body{font-family:Arial,Helvetica,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px;background:#f5f5f5}
-                        .qr-wrapper{background:#fff;padding:40px;border-radius:12px}
-                        .qr-card{text-align:center;padding:30px 25px;border-radius:12px}
-                        .qr-header h3{margin:0 0 8px 0;font-size:24px;color:#2c3e50}
-                        .qr-header p{margin:0;color:#7f8c8d}
-                        .qr-container img{width:280px;height:280px;display:block}
-                        @media print{ body{background:#fff} }
+                        body {
+                            font-family: Arial, sans-serif;
+                            text-align: center;
+                            padding: 20px;
+                        }
+                        h3 { margin: 10px 0; }
+                        .badge { 
+                            background: #007bff; 
+                            color: white; 
+                            padding: 5px 10px; 
+                            border-radius: 5px;
+                            display: inline-block;
+                            margin: 10px 0;
+                        }
+                        img { 
+                            margin: 20px 0;
+                            border: 2px solid #ddd;
+                            padding: 10px;
+                        }
+                        .footer {
+                            margin-top: 20px;
+                            font-size: 12px;
+                            color: #666;
+                        }
                     </style>
                 </head>
                 <body>
-                    <div class="qr-wrapper">
-                        <div class="qr-card">
-                            <div class="qr-header">
-                                <h3>${nama}</h3>
-                                <p>${nip}</p>
-                            </div>
-                            <div class="qr-container">
-                                <img src="${dataUrl}" alt="QR Code"/>
-                            </div>
-                        </div>
+                    <h2>QR Code Login Karyawan</h2>
+                    <h3>${nama}</h3>
+                    <div class="badge">NIP: ${nip}</div>
+                    <br>
+                    <img src="${url}" alt="QR Code">
+                    <div class="footer">
+                        <p>Scan QR Code untuk login</p>
+                        <p>Sistem Presensi UNI - ${new Date().toLocaleDateString('id-ID')}</p>
                     </div>
-                    <script>
-                        window.onload = function() {
-                            setTimeout(function(){ window.print(); }, 250);
-                        };
-                    <\/script>
                 </body>
-            </html>
-        `);
-                printWindow.document.close();
-            });
-
-        }); 
-    </script>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.focus();
+            
+            setTimeout(function() {
+                printWindow.print();
+                printWindow.close();
+            }, 250);
+        } else {
+            alert('QR Code belum dibuat');
+        }
+    });
+    
+    // Reset modal when closed
+    $('#qrcodeModal').on('hidden.bs.modal', function() {
+        $('#qrcodeContainer').html('<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>');
+        currentQRCode = null;
+        currentQRUrl = '';
+    });
+    
+    // Filter functionality
+    $('#filterStatus, #filterJabatan, #filterFakultas').on('change', function() {
+        applyFilters();
+    });
+    
+    $('#resetFilter').on('click', function() {
+        $('#filterStatus').val('');
+        $('#filterJabatan').val('');
+        $('#filterFakultas').val('');
+        applyFilters();
+    });
+    
+    function applyFilters() {
+        const status = $('#filterStatus').val();
+        const jabatan = $('#filterJabatan').val();
+        const fakultas = $('#filterFakultas').val();
+        
+        $('#karyawanTable tbody tr').each(function() {
+            let show = true;
+            
+            // Filter by status
+            if(status !== '') {
+                const rowStatus = $(this).find('td:eq(7) .badge').hasClass('bg-success') ? '1' : '0';
+                if(rowStatus !== status) show = false;
+            }
+            
+            // You can add more complex filtering here if needed
+            
+            $(this).toggle(show);
+        });
+    }
+    
+    // Fade in animation
+    $('.card').hide().fadeIn(400);
+});
+</script>
 @endpush
