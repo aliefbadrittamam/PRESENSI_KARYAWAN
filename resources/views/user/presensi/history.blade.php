@@ -63,7 +63,7 @@
                                         {{ ucfirst($item->status_kehadiran) }}
                                     </span>
                                 </div>
-                                <a href="{{ route('admin.presensi.show', $item->id_presensi) }}" class="btn btn-sm btn-outline-primary">
+                                <a href="{{ route('presensi.show', $item->id_presensi) }}" class="btn btn-sm btn-outline-primary">
                                     <i class="fas fa-eye"></i>
                                 </a>
                             </div>
