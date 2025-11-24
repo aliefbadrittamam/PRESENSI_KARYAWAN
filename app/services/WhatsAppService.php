@@ -13,14 +13,15 @@ class WhatsAppService
 
     public function __construct()
     {
-        $this->token = env('FONNTE_TOKEN');
-        $this->url = env('FONNTE_URL');
+        $this->token = config('services.fonnte.token');
+        $this->url = config('services.fonnte.url');
+
         $this->client = new Client();
     }
 
     /**
      * Send WhatsApp message
-     * 
+     *
      * @param string $phone - Format: 628xxx (tanpa +)
      * @param string $message
      * @return array
@@ -31,14 +32,13 @@ class WhatsAppService
             // Format nomor telepon (hapus +, 0, spasi, dan karakter lain)
             $phone = $this->formatPhone($phone);
 
-            $response = $this->client->post($this->url, [
+            $response = $this->client->request('POST', $this->url, [
                 'headers' => [
                     'Authorization' => $this->token,
                 ],
                 'form_params' => [
                     'target' => $phone,
                     'message' => $message,
-                    'countryCode' => '62', // Indonesia
                 ],
             ]);
 
@@ -46,23 +46,22 @@ class WhatsAppService
 
             Log::info('WhatsApp sent successfully', [
                 'phone' => $phone,
-                'response' => $result
+                'response' => $result,
             ]);
 
             return [
                 'success' => true,
-                'data' => $result
+                'data' => $result,
             ];
-
         } catch (\Exception $e) {
             Log::error('WhatsApp send failed', [
                 'phone' => $phone,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return [
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ];
         }
     }
