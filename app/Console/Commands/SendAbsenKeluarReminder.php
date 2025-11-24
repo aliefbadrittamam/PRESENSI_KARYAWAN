@@ -83,11 +83,11 @@ class SendAbsenKeluarReminder extends Command
         }
 
         // Get presensi yang sudah absen masuk tapi belum keluar
-        $presensiList = Presensi::with('karyawan')
-            ->where('tanggal_presensi', $today)
-            ->whereNotNull('jam_masuk')
-            ->whereNull('jam_keluar')
-            ->get();
+$presensiList = Presensi::with(['karyawan', 'shift'])  // ← Tambah eager load shift
+    ->where('tanggal_presensi', $today)
+    ->whereNotNull('jam_masuk')
+    ->whereNull('jam_keluar')
+    ->get();
 
         if ($presensiList->count() === 0) {
             $this->info('✓ Semua karyawan sudah absen keluar.');
