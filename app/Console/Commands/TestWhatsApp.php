@@ -13,7 +13,7 @@ class TestWhatsApp extends Command
     public function handle(WhatsAppService $whatsapp)
     {
         $phone = $this->argument('phone');
-        $message = $this->option('message') ?? "🔔 *Test Notifikasi*\n\nHalo, walid ajg.\n\nWaktu: " . now()->format('d F Y H:i');
+        $message = $this->option('message') ?? "🔔 *Test Notifikasi*\n\nHalo, test whatsaappp 123 .\n\nWaktu: " . now()->format('d F Y H:i');
 
         $this->info("Mengirim pesan ke: {$phone}");
         $this->info("Pesan: {$message}");

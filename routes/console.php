@@ -12,10 +12,10 @@ Schedule::command('presensi:remind')
     ->everyMinute()
     ->withoutOverlapping()
     ->timezone('Asia/Jakarta')
-    ->appendOutputTo(storage_path('logs/reminder-masuk.log'));  // ← Output ke file
+    ->appendOutputTo(storage_path('logs/reminder-masuk.log'));  
 
 Schedule::command('presensi:remind-keluar')
     ->everyMinute()
     ->withoutOverlapping()
     ->timezone('Asia/Jakarta')
-    ->appendOutputTo(storage_path('logs/reminder-keluar.log'));  // ← Output ke file
+    ->appendOutputTo(storage_path('logs/reminder-keluar.log'));  
